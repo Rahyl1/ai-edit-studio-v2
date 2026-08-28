@@ -26,13 +26,11 @@ export default function Home() {
     <div style={{ minHeight: "100vh", backgroundColor: "#0b0f19", color: "#fff", padding: "20px", fontFamily: "sans-serif" }}>
       <div style={{ maxWidth: "600px", margin: "0 auto", backgroundColor: "#111827", padding: "24px", borderRadius: "16px", border: "1px solid #1f2937" }}>
         
-        {/* Title */}
         <h1 style={{ color: "#22d3ee", textAlign: "center", marginBottom: "8px" }}>✨ AI Edit Studio</h1>
         <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "14px", marginBottom: "20px" }}>
           আপনার টেক্সট প্রম্পট দিয়ে ছবি ও ভিডিও ইচ্ছেমতো এডিট করুন
         </p>
 
-        {/* Tabs */}
         <div style={{ display: "flex", gap: "10px", marginBottom: "20px", backgroundColor: "#030712", padding: "5px", borderRadius: "10px" }}>
           <button
             onClick={() => setActiveTab("image")}
@@ -54,7 +52,6 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Input Form */}
         <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
           <div>
             <label style={{ fontSize: "12px", color: "#9ca3af", display: "block", marginBottom: "6px" }}>
@@ -91,7 +88,6 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Output Result */}
         {result && (
           <div style={{ marginTop: "24px", textAlign: "center", borderTop: "1px solid #1f2937", paddingTop: "16px" }}>
             <h3 style={{ color: "#22d3ee", fontSize: "14px", marginBottom: "10px" }}>এডিট সম্পন্ন ফলাফল:</h3>
