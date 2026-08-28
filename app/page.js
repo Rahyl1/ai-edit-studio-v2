@@ -23,20 +23,20 @@ export default function Home() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#0b0f19", color: "#fff", padding: "20px", fontFamily: "sans-serif" }}>
-      <div style={{ maxWidth: "600px", margin: "0 auto", backgroundColor: "#111827", padding: "24px", borderRadius: "16px", border: "1px solid #1f2937" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#0b0f19", color: "#fff", padding: "16px", fontFamily: "sans-serif", boxSizing: "border-box" }}>
+      <div style={{ width: "100%", maxWidth: "100%", margin: "0 auto", backgroundColor: "#111827", padding: "20px", borderRadius: "16px", border: "1px solid #1f2937", boxSizing: "border-box" }}>
         
-        <h1 style={{ color: "#22d3ee", textAlign: "center", marginBottom: "8px" }}>✨ AI Edit Studio</h1>
+        <h1 style={{ color: "#22d3ee", textAlign: "center", marginBottom: "8px", fontSize: "26px" }}>✨ AI Edit Studio</h1>
         <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "14px", marginBottom: "20px" }}>
           আপনার টেক্সট প্রম্পট দিয়ে ছবি ও ভিডিও ইচ্ছেমতো এডিট করুন
         </p>
 
-        <div style={{ display: "flex", gap: "10px", marginBottom: "20px", backgroundColor: "#030712", padding: "5px", borderRadius: "10px" }}>
+        <div style={{ display: "flex", gap: "10px", marginBottom: "20px", backgroundColor: "#030712", padding: "6px", borderRadius: "12px" }}>
           <button
             onClick={() => setActiveTab("image")}
             style={{
-              flex: 1, padding: "12px", border: "none", borderRadius: "8px", cursor: "pointer",
-              backgroundColor: activeTab === "image" ? "#0891b2" : "transparent", color: "#fff", fontWeight: "bold"
+              flex: 1, padding: "12px 8px", border: "none", borderRadius: "8px", cursor: "pointer",
+              backgroundColor: activeTab === "image" ? "#0891b2" : "transparent", color: "#fff", fontWeight: "bold", fontSize: "14px"
             }}
           >
             🖼️ Image AI Edit
@@ -44,35 +44,35 @@ export default function Home() {
           <button
             onClick={() => setActiveTab("video")}
             style={{
-              flex: 1, padding: "12px", border: "none", borderRadius: "8px", cursor: "pointer",
-              backgroundColor: activeTab === "video" ? "#0891b2" : "transparent", color: "#fff", fontWeight: "bold"
+              flex: 1, padding: "12px 8px", border: "none", borderRadius: "8px", cursor: "pointer",
+              backgroundColor: activeTab === "video" ? "#0891b2" : "transparent", color: "#fff", fontWeight: "bold", fontSize: "14px"
             }}
           >
             🎥 Video AI Edit
           </button>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div>
-            <label style={{ fontSize: "12px", color: "#9ca3af", display: "block", marginBottom: "6px" }}>
+            <label style={{ fontSize: "13px", color: "#9ca3af", display: "block", marginBottom: "8px" }}>
               {activeTab === "image" ? "ছবি নির্বাচন করুন:" : "ভিডিও নির্বাচন করুন:"}
             </label>
             <input
               type="file"
               accept={activeTab === "image" ? "image/*" : "video/*"}
               onChange={(e) => setFile(e.target.files[0])}
-              style={{ width: "100%", padding: "10px", backgroundColor: "#030712", color: "#fff", border: "1px solid #374151", borderRadius: "8px", boxSizing: "border-box" }}
+              style={{ width: "100%", padding: "12px", backgroundColor: "#030712", color: "#fff", border: "1px solid #374151", borderRadius: "10px", boxSizing: "border-box", fontSize: "14px" }}
             />
           </div>
 
           <div>
-            <label style={{ fontSize: "12px", color: "#9ca3af", display: "block", marginBottom: "6px" }}>আপনার প্রম্পট (AI নির্দেশনা):</label>
+            <label style={{ fontSize: "13px", color: "#9ca3af", display: "block", marginBottom: "8px" }}>আপনার প্রম্পট (AI নির্দেশনা):</label>
             <textarea
-              rows={3}
+              rows={4}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder={activeTab === "image" ? "যেমন: ছবির ব্যাকগ্রাউন্ড পরিবর্তন করে সূর্যাস্ত দাও..." : "যেমন: ভিডিওর গতি দ্বিগুণ করো এবং সাবটাইটেল দাও..."}
-              style={{ width: "100%", padding: "10px", backgroundColor: "#030712", color: "#fff", border: "1px solid #374151", borderRadius: "8px", boxSizing: "border-box", resize: "none" }}
+              style={{ width: "100%", padding: "12px", backgroundColor: "#030712", color: "#fff", border: "1px solid #374151", borderRadius: "10px", boxSizing: "border-box", resize: "none", fontSize: "14px" }}
             />
           </div>
 
@@ -80,8 +80,8 @@ export default function Home() {
             onClick={handleProcess}
             disabled={loading}
             style={{
-              width: "100%", padding: "14px", backgroundColor: loading ? "#374151" : "#06b6d4", color: "#fff",
-              border: "none", borderRadius: "8px", fontWeight: "bold", fontSize: "16px", cursor: "pointer"
+              width: "100%", padding: "16px", backgroundColor: loading ? "#374151" : "#06b6d4", color: "#fff",
+              border: "none", borderRadius: "10px", fontWeight: "bold", fontSize: "16px", cursor: "pointer"
             }}
           >
             {loading ? "⏳ প্রসেস হচ্ছে..." : "🪄 ম্যাজিক এডিট করুন"}
@@ -90,9 +90,9 @@ export default function Home() {
 
         {result && (
           <div style={{ marginTop: "24px", textAlign: "center", borderTop: "1px solid #1f2937", paddingTop: "16px" }}>
-            <h3 style={{ color: "#22d3ee", fontSize: "14px", marginBottom: "10px" }}>এডিট সম্পন্ন ফলাফল:</h3>
-            <img src={result} alt="AI Result" style={{ width: "100%", borderRadius: "8px", marginBottom: "10px" }} />
-            <a href={result} download style={{ color: "#22d3ee", fontSize: "12px", textDecoration: "none" }}>📥 ডাউনলোড করুন</a>
+            <h3 style={{ color: "#22d3ee", fontSize: "15px", marginBottom: "10px" }}>এডিট সম্পন্ন ফলাফল:</h3>
+            <img src={result} alt="AI Result" style={{ width: "100%", borderRadius: "10px", marginBottom: "12px" }} />
+            <a href={result} download style={{ display: "inline-block", padding: "10px 16px", backgroundColor: "#1f2937", color: "#22d3ee", fontSize: "13px", textDecoration: "none", borderRadius: "8px", fontWeight: "bold" }}>📥 ডাউনলোড করুন</a>
           </div>
         )}
 
