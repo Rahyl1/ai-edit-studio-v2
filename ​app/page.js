@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { Image, Video, Wand2, Upload, Sparkles } from "lucide-react";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("image");
@@ -9,7 +8,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
 
-  const handleProcess = async () => {
+  const handleProcess = () => {
     if (!file || !prompt) {
       alert("অনুগ্রহ করে ফাইল এবং প্রম্পট দুটোই দিন!");
       return;
@@ -17,7 +16,6 @@ export default function Home() {
     setLoading(true);
     setResult(null);
 
-    // AI Processing Simulation (পরবর্তীতে ব্যাকএন্ড API যুক্ত হবে)
     setTimeout(() => {
       setLoading(false);
       setResult("https://via.placeholder.com/600x400?text=AI+Edited+Result");
@@ -25,110 +23,84 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white p-4 md:p-8 flex flex-col items-center">
-      <div className="max-w-2xl w-full space-y-6">
+    <div style={{ minHeight: "100vh", backgroundColor: "#0b0f19", color: "#fff", padding: "20px", fontFamily: "sans-serif" }}>
+      <div style={{ maxWidth: "600px", margin: "0 auto", backgroundColor: "#111827", padding: "24px", borderRadius: "16px", border: "1px solid #1f2937" }}>
         
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight text-cyan-400 flex items-center justify-center gap-2">
-            <Sparkles className="w-8 h-8 text-cyan-400" /> AI Edit Studio
-          </h1>
-          <p className="text-slate-400 text-sm">
-            আপনার টেক্সট প্রম্পট দিয়ে ছবি ও ভিডিও ইচ্ছেমতো এডিট করুন
-          </p>
-        </div>
+        {/* Title */}
+        <h1 style={{ color: "#22d3ee", textAlign: "center", marginBottom: "8px" }}>✨ AI Edit Studio</h1>
+        <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "14px", marginBottom: "20px" }}>
+          আপনার টেক্সট প্রম্পট দিয়ে ছবি ও ভিডিও ইচ্ছেমতো এডিট করুন
+        </p>
 
-        {/* Mode Selector Tabs */}
-        <div className="flex rounded-xl bg-slate-900 p-1 border border-slate-800">
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: "10px", marginBottom: "20px", backgroundColor: "#030712", padding: "5px", borderRadius: "10px" }}>
           <button
             onClick={() => setActiveTab("image")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all ${
-              activeTab === "image" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
-            }`}
+            style={{
+              flex: 1, padding: "12px", border: "none", borderRadius: "8px", cursor: "pointer",
+              backgroundColor: activeTab === "image" ? "#0891b2" : "transparent", color: "#fff", fontWeight: "bold"
+            }}
           >
-            <Image className="w-4 h-4" /> Image AI Edit
+            🖼️ Image AI Edit
           </button>
           <button
             onClick={() => setActiveTab("video")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all ${
-              activeTab === "video" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
-            }`}
+            style={{
+              flex: 1, padding: "12px", border: "none", borderRadius: "8px", cursor: "pointer",
+              backgroundColor: activeTab === "video" ? "#0891b2" : "transparent", color: "#fff", fontWeight: "bold"
+            }}
           >
-            <Video className="w-4 h-4" /> Video AI Edit
+            🎥 Video AI Edit
           </button>
         </div>
 
-        {/* Main Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
-          
-          {/* File Upload Box */}
-          <div className="border-2 border-dashed border-slate-700 hover:border-cyan-500 rounded-xl p-6 text-center transition-all bg-slate-950/50">
+        {/* Input Form */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+          <div>
+            <label style={{ fontSize: "12px", color: "#9ca3af", display: "block", marginBottom: "6px" }}>
+              {activeTab === "image" ? "ছবি নির্বাচন করুন:" : "ভিডিও নির্বাচন করুন:"}
+            </label>
             <input
               type="file"
-              id="file-upload"
               accept={activeTab === "image" ? "image/*" : "video/*"}
-              className="hidden"
               onChange={(e) => setFile(e.target.files[0])}
+              style={{ width: "100%", padding: "10px", backgroundColor: "#030712", color: "#fff", border: "1px solid #374151", borderRadius: "8px", boxSizing: "border-box" }}
             />
-            <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-2">
-              <Upload className="w-8 h-8 text-slate-400" />
-              <span className="text-sm text-slate-300 font-medium">
-                {file ? file.name : `এখানে ${activeTab === "image" ? "ছবি" : "ভিডিও"} আপলোড করুন`}
-              </span>
-              <span className="text-xs text-slate-500">PNG, JPG, MP4 সাপোর্টেড</span>
-            </label>
           </div>
 
-          {/* Prompt Input */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              আপনার প্রম্পট (AI-কে নির্দেশনা দিন):
-            </label>
+          <div>
+            <label style={{ fontSize: "12px", color: "#9ca3af", display: "block", marginBottom: "6px" }}>আপনার প্রম্পট (AI নির্দেশনা):</label>
             <textarea
               rows={3}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder={
-                activeTab === "image"
-                  ? "যেমন: ছবিটির ব্যাকগ্রাউন্ড বদলে একটি সুন্দর সূর্যাস্তের দৃশ্য দাও..."
-                  : "যেমন: ভিডিওটি থেকে অপ্রয়োজনীয় অংশ কেটে সাবটাইটেল যোগ করো..."
-              }
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-slate-600 resize-none"
+              placeholder={activeTab === "image" ? "যেমন: ছবির ব্যাকগ্রাউন্ড পরিবর্তন করে সূর্যাস্ত দাও..." : "যেমন: ভিডিওর গতি দ্বিগুণ করো এবং সাবটাইটেল দাও..."}
+              style={{ width: "100%", padding: "10px", backgroundColor: "#030712", color: "#fff", border: "1px solid #374151", borderRadius: "8px", boxSizing: "border-box", resize: "none" }}
             />
           </div>
 
-          {/* Action Button */}
           <button
             onClick={handleProcess}
             disabled={loading}
-            className="w-full py-3 bg-cyan-500 hover:bg-cyan-600 disabled:bg-slate-800 text-slate-950 font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/10"
+            style={{
+              width: "100%", padding: "14px", backgroundColor: loading ? "#374151" : "#06b6d4", color: "#fff",
+              border: "none", borderRadius: "8px", fontWeight: "bold", fontSize: "16px", cursor: "pointer"
+            }}
           >
-            {loading ? (
-              <span>এআই প্রসেসিং হচ্ছে...</span>
-            ) : (
-              <>
-                <Wand2 className="w-5 h-5" /> ম্যাজিক এডিট করুন
-              </>
-            )}
+            {loading ? "⏳ প্রসেস হচ্ছে..." : "🪄 ম্যাজিক এডিট করুন"}
           </button>
         </div>
 
-        {/* Output Section */}
+        {/* Output Result */}
         {result && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3 text-center">
-            <h3 className="text-sm font-semibold text-cyan-400">এডিট সম্পন্ন ফলাফল:</h3>
-            <img src={result} alt="Result" className="w-full rounded-xl border border-slate-800" />
-            <a
-              href={result}
-              download
-              className="inline-block px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg text-white mt-2"
-            >
-              ডাউনলোড করুন
-            </a>
+          <div style={{ marginTop: "24px", textAlign: "center", borderTop: "1px solid #1f2937", paddingTop: "16px" }}>
+            <h3 style={{ color: "#22d3ee", fontSize: "14px", marginBottom: "10px" }}>এডিট সম্পন্ন ফলাফল:</h3>
+            <img src={result} alt="AI Result" style={{ width: "100%", borderRadius: "8px", marginBottom: "10px" }} />
+            <a href={result} download style={{ color: "#22d3ee", fontSize: "12px", textDecoration: "none" }}>📥 ডাউনলোড করুন</a>
           </div>
         )}
 
       </div>
-    </main>
+    </div>
   );
 }
