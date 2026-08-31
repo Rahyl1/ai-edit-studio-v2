@@ -9,29 +9,11 @@ export async function POST(req) {
       return NextResponse.json({ error: "HF_TOKEN missing in Vercel settings" }, { status: 500 });
     }
 
-    // Free FLUX.1-dev AI Model via Hugging Face
-    const response = await fetch(
-      "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev",
-      {
-        headers: {
-          Authorization: `Bearer ${hfToken}`,
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-        body: JSON.stringify({ inputs: prompt }),
-      }
-    );
+    // High Reliability Free Pollinations AI Endpoint
+    const safePrompt = encodeURIComponent(prompt || "a beautiful cat");
+    const imageUrl = `https://image.pollinations.ai/prompt/${safePrompt}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`;
 
-    if (!response.ok) {
-      const errText = await response.text();
-      return NextResponse.json({ error: `AI Error: ${errText}` }, { status: response.status });
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const base64Image = Buffer.from(arrayBuffer).toString('base64');
-    const resultUrl = `data:image/jpeg;base64,${base64Image}`;
-
-    return NextResponse.json({ resultUrl });
+    return NextResponse.json({ resultUrl: imageUrl });
 
   } catch (error) {
     return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
