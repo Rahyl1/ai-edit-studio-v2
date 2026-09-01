@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 
 export default function Home() {
@@ -9,8 +10,14 @@ export default function Home() {
   const [result, setResult] = useState(null);
 
   const handleProcess = async () => {
-    if (!prompt) {
+    if (!prompt.trim()) {
       alert("অনুগ্রহ করে একটি প্রম্পট লিখুন!");
+      return;
+    }
+
+    // Video AI will be added in a later step
+    if (activeTab === "video") {
+      alert("Video AI Edit পরের STEP-এ চালু করা হবে। এখন Image AI Edit পরীক্ষা করুন।");
       return;
     }
 
@@ -18,119 +25,342 @@ export default function Home() {
     setResult(null);
 
     try {
-      let imageUrl = "";
-
-      // Convert local file to base64 Data URL if available
-      if (file) {
-        imageUrl = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.readAsDataURL(file);
-        });
-      }
-
+      // IMPORTANT:
+      // Do NOT convert the image to Base64.
+      // The current AI generation endpoint only needs the prompt.
       const res = await fetch("/api/edit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          prompt,
-          imageUrl,
-          isVideo: activeTab === "video",
+          prompt: prompt.trim(),
         }),
       });
 
+      // Safely check the response before reading JSON
+      const contentType = res.headers.get("content-type") || "";
+
+      if (!contentType.includes("application/json")) {
+        const text = await res.text();
+
+        throw new Error(
+          `Server JSON response দেয়নি। Status: ${res.status}. Response: ${text.slice(
+            0,
+            200
+          )}`
+        );
+      }
+
       const data = await res.json();
 
-      if (data.resultUrl) {
+      if (!res.ok) {
+        throw new Error(
+          data.error || `Server error (${res.status})`
+        );
+      }
+
+      if (data.success && data.resultUrl) {
+        setResult(data.resultUrl);
+      } else if (data.resultUrl) {
         setResult(data.resultUrl);
       } else {
-        alert("ত্রুটি: " + (data.error || "AI কোনো আউটপুট দেয়নি!"));
+        throw new Error(
+          data.error || "AI কোনো আউটপুট দেয়নি!"
+        );
       }
     } catch (err) {
-      alert("প্রসেসিংয়ে ভুল হয়েছে: " + err.message);
+      console.error("AI Edit Error:", err);
+
+      alert(
+        "প্রসেসিংয়ে ভুল হয়েছে:\n\n" +
+          (err.message || "Unknown error")
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#0b0f19", color: "#fff", padding: "16px", fontFamily: "sans-serif", boxSizing: "border-box" }}>
-      <div style={{ width: "100%", maxWidth: "600px", margin: "0 auto", backgroundColor: "#111827", padding: "20px", borderRadius: "16px", border: "1px solid #1f2937", boxSizing: "border-box" }}>
-        
-        <h1 style={{ color: "#22d3ee", textAlign: "center", marginBottom: "8px", fontSize: "26px" }}>✨ AI Edit Studio</h1>
-        <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "14px", marginBottom: "20px" }}>
-          আপনার টেক্সট প্রম্পট দিয়ে আসল AI ছবি ও ভিডিও তৈরি করুন
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#0b0f19",
+        color: "#fff",
+        padding: "16px",
+        fontFamily: "sans-serif",
+        boxSizing: "border-box",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "600px",
+          margin: "0 auto",
+          backgroundColor: "#111827",
+          padding: "20px",
+          borderRadius: "16px",
+          border: "1px solid #1f2937",
+          boxSizing: "border-box",
+        }}
+      >
+        <h1
+          style={{
+            color: "#22d3ee",
+            textAlign: "center",
+            marginBottom: "8px",
+            fontSize: "26px",
+          }}
+        >
+          ✨ AI Edit Studio
+        </h1>
+
+        <p
+          style={{
+            color: "#9ca3af",
+            textAlign: "center",
+            fontSize: "14px",
+            marginBottom: "20px",
+          }}
+        >
+          আপনার টেক্সট প্রম্পট দিয়ে AI ছবি ও ভিডিও তৈরি করুন
         </p>
 
-        <div style={{ display: "flex", gap: "10px", marginBottom: "20px", backgroundColor: "#030712", padding: "6px", borderRadius: "12px" }}>
+        {/* TABS */}
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            marginBottom: "20px",
+            backgroundColor: "#030712",
+            padding: "6px",
+            borderRadius: "12px",
+          }}
+        >
           <button
-            onClick={() => setActiveTab("image")}
+            onClick={() => {
+              setActiveTab("image");
+              setResult(null);
+              setFile(null);
+            }}
             style={{
-              flex: 1, padding: "12px 8px", border: "none", borderRadius: "8px", cursor: "pointer",
-              backgroundColor: activeTab === "image" ? "#0891b2" : "transparent", color: "#fff", fontWeight: "bold", fontSize: "14px"
+              flex: 1,
+              padding: "12px 8px",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              backgroundColor:
+                activeTab === "image"
+                  ? "#0891b2"
+                  : "transparent",
+              color: "#fff",
+              fontWeight: "bold",
+              fontSize: "14px",
             }}
           >
             🖼️ Image AI Edit
           </button>
+
           <button
-            onClick={() => setActiveTab("video")}
+            onClick={() => {
+              setActiveTab("video");
+              setResult(null);
+              setFile(null);
+            }}
             style={{
-              flex: 1, padding: "12px 8px", border: "none", borderRadius: "8px", cursor: "pointer",
-              backgroundColor: activeTab === "video" ? "#0891b2" : "transparent", color: "#fff", fontWeight: "bold", fontSize: "14px"
+              flex: 1,
+              padding: "12px 8px",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              backgroundColor:
+                activeTab === "video"
+                  ? "#0891b2"
+                  : "transparent",
+              color: "#fff",
+              fontWeight: "bold",
+              fontSize: "14px",
             }}
           >
             🎥 Video AI Edit
           </button>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        {/* FILE INPUT */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "16px",
+          }}
+        >
           <div>
-            <label style={{ fontSize: "13px", color: "#9ca3af", display: "block", marginBottom: "8px" }}>
-              {activeTab === "image" ? "ছবি নির্বাচন করুন (ঐচ্ছিক):" : "ভিডিও নির্বাচন করুন (ঐচ্ছিক):"}
+            <label
+              style={{
+                fontSize: "13px",
+                color: "#9ca3af",
+                display: "block",
+                marginBottom: "8px",
+              }}
+            >
+              {activeTab === "image"
+                ? "ছবি নির্বাচন করুন (ঐচ্ছিক):"
+                : "ভিডিও নির্বাচন করুন (ঐচ্ছিক):"}
             </label>
+
             <input
               type="file"
-              accept={activeTab === "image" ? "image/*" : "video/*"}
-              onChange={(e) => setFile(e.target.files[0])}
-              style={{ width: "100%", padding: "12px", backgroundColor: "#030712", color: "#fff", border: "1px solid #374151", borderRadius: "10px", boxSizing: "border-box", fontSize: "14px" }}
+              accept={
+                activeTab === "image"
+                  ? "image/*"
+                  : "video/*"
+              }
+              onChange={(e) => {
+                const selectedFile =
+                  e.target.files?.[0] || null;
+
+                setFile(selectedFile);
+              }}
+              style={{
+                width: "100%",
+                padding: "12px",
+                backgroundColor: "#030712",
+                color: "#fff",
+                border: "1px solid #374151",
+                borderRadius: "10px",
+                boxSizing: "border-box",
+                fontSize: "14px",
+              }}
             />
+
+            {file && (
+              <p
+                style={{
+                  marginTop: "8px",
+                  fontSize: "12px",
+                  color: "#22d3ee",
+                  wordBreak: "break-word",
+                }}
+              >
+                নির্বাচিত ফাইল: {file.name}
+              </p>
+            )}
           </div>
 
+          {/* PROMPT */}
           <div>
-            <label style={{ fontSize: "13px", color: "#9ca3af", display: "block", marginBottom: "8px" }}>আপনার প্রম্পট (AI নির্দেশনা):</label>
+            <label
+              style={{
+                fontSize: "13px",
+                color: "#9ca3af",
+                display: "block",
+                marginBottom: "8px",
+              }}
+            >
+              আপনার প্রম্পট (AI নির্দেশনা):
+            </label>
+
             <textarea
               rows={4}
               value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder={activeTab === "image" ? "যেমন: A futuristic city with flying cars at sunset, photorealistic..." : "যেমন: A cat playing guitar on Mars..."}
-              style={{ width: "100%", padding: "12px", backgroundColor: "#030712", color: "#fff", border: "1px solid #374151", borderRadius: "10px", boxSizing: "border-box", resize: "none", fontSize: "14px" }}
+              onChange={(e) =>
+                setPrompt(e.target.value)
+              }
+              placeholder={
+                activeTab === "image"
+                  ? "যেমন: A beautiful realistic red rose, cinematic lighting..."
+                  : "যেমন: A cat playing guitar on Mars..."
+              }
+              style={{
+                width: "100%",
+                padding: "12px",
+                backgroundColor: "#030712",
+                color: "#fff",
+                border: "1px solid #374151",
+                borderRadius: "10px",
+                boxSizing: "border-box",
+                resize: "none",
+                fontSize: "14px",
+              }}
             />
           </div>
 
+          {/* PROCESS BUTTON */}
           <button
             onClick={handleProcess}
             disabled={loading}
             style={{
-              width: "100%", padding: "16px", backgroundColor: loading ? "#374151" : "#06b6d4", color: "#fff",
-              border: "none", borderRadius: "10px", fontWeight: "bold", fontSize: "16px", cursor: "pointer"
+              width: "100%",
+              padding: "16px",
+              backgroundColor: loading
+                ? "#374151"
+                : "#06b6d4",
+              color: "#fff",
+              border: "none",
+              borderRadius: "10px",
+              fontWeight: "bold",
+              fontSize: "16px",
+              cursor: loading
+                ? "not-allowed"
+                : "pointer",
             }}
           >
-            {loading ? "⏳ AI জেনারেট হচ্ছে..." : "🪄 ম্যাজিক এডিট করুন"}
+            {loading
+              ? "⏳ AI জেনারেট হচ্ছে..."
+              : "🪄 ম্যাজিক এডিট করুন"}
           </button>
         </div>
 
+        {/* RESULT */}
         {result && (
-          <div style={{ marginTop: "24px", textAlign: "center", borderTop: "1px solid #1f2937", paddingTop: "16px" }}>
-            <h3 style={{ color: "#22d3ee", fontSize: "15px", marginBottom: "10px" }}>এডিট সম্পন্ন ফলাফল:</h3>
-            {activeTab === "image" ? (
-              <img src={result} alt="AI Result" style={{ width: "100%", borderRadius: "10px", marginBottom: "12px" }} />
-            ) : (
-              <video src={result} controls style={{ width: "100%", borderRadius: "10px", marginBottom: "12px" }} />
-            )}
-            <a href={result} target="_blank" download style={{ display: "inline-block", padding: "10px 16px", backgroundColor: "#1f2937", color: "#22d3ee", fontSize: "13px", textDecoration: "none", borderRadius: "8px", fontWeight: "bold" }}>📥 ডাউনলোড করুন</a>
+          <div
+            style={{
+              marginTop: "24px",
+              textAlign: "center",
+              borderTop: "1px solid #1f2937",
+              paddingTop: "16px",
+            }}
+          >
+            <h3
+              style={{
+                color: "#22d3ee",
+                fontSize: "15px",
+                marginBottom: "10px",
+              }}
+            >
+              AI ফলাফল:
+            </h3>
+
+            <img
+              src={result}
+              alt="AI Result"
+              style={{
+                width: "100%",
+                borderRadius: "10px",
+                marginBottom: "12px",
+              }}
+            />
+
+            <a
+              href={result}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              style={{
+                display: "inline-block",
+                padding: "10px 16px",
+                backgroundColor: "#1f2937",
+                color: "#22d3ee",
+                fontSize: "13px",
+                textDecoration: "none",
+                borderRadius: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              📥 ডাউনলোড করুন
+            </a>
           </div>
         )}
-
       </div>
     </div>
   );
