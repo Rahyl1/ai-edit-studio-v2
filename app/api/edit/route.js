@@ -1,21 +1,61 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const { prompt } = await req.json();
+    let body = {};
 
-    const hfToken = process.env.HF_TOKEN;
-    if (!hfToken) {
-      return NextResponse.json({ error: "HF_TOKEN missing in Vercel settings" }, { status: 500 });
+    // Safely read JSON request
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid JSON request."
+        },
+        { status: 400 }
+      );
     }
 
-    // High Reliability Free Pollinations AI Endpoint
-    const safePrompt = encodeURIComponent(prompt || "a beautiful cat");
-    const imageUrl = `https://image.pollinations.ai/prompt/${safePrompt}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`;
+    const prompt =
+      typeof body.prompt === "string"
+        ? body.prompt.trim()
+        : "";
 
-    return NextResponse.json({ resultUrl: imageUrl });
+    if (!prompt) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Please enter a prompt."
+        },
+        { status: 400 }
+      );
+    }
+
+    // Pollinations AI image endpoint
+    const safePrompt = encodeURIComponent(prompt);
+
+    const imageUrl =
+      `https://image.pollinations.ai/prompt/${safePrompt}` +
+      `?width=1024` +
+      `&height=1024` +
+      `&nologo=true` +
+      `&seed=${Math.floor(Math.random() * 1000000)}`;
+
+    return NextResponse.json({
+      success: true,
+      resultUrl: imageUrl
+    });
 
   } catch (error) {
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    console.error("AI Edit API Error:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: error?.message || "Internal Server Error"
+      },
+      { status: 500 }
+    );
   }
 }
