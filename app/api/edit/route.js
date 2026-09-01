@@ -2,58 +2,50 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    let body = {};
+    const body = await req.json();
 
-    // Safely read JSON request
-    try {
-      body = await req.json();
-    } catch {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid JSON request."
-        },
-        { status: 400 }
-      );
-    }
-
-    const prompt =
-      typeof body.prompt === "string"
-        ? body.prompt.trim()
-        : "";
+    const prompt = body.prompt || "";
+    const imageUrl = body.imageUrl || "";
 
     if (!prompt) {
       return NextResponse.json(
+        { error: "Prompt is required." },
+        { status: 400 }
+      );
+    }
+
+    if (!imageUrl) {
+      return NextResponse.json(
         {
-          success: false,
-          error: "Please enter a prompt."
+          error:
+            "Please upload an image. AI Edit requires an input image.",
         },
         { status: 400 }
       );
     }
 
-    // Pollinations AI image endpoint
-    const safePrompt = encodeURIComponent(prompt);
+    /*
+      STEP 2:
+      We keep the uploaded image information here.
 
-    const imageUrl =
-      `https://image.pollinations.ai/prompt/${safePrompt}` +
-      `?width=1024` +
-      `&height=1024` +
-      `&nologo=true` +
-      `&seed=${Math.floor(Math.random() * 1000000)}`;
+      The previous version ignored imageUrl and generated
+      a completely new image from the prompt.
+    */
 
     return NextResponse.json({
       success: true,
-      resultUrl: imageUrl
+      message:
+        "Image received. Image-to-image editing endpoint is ready for the next step.",
+      prompt: prompt,
+      imageReceived: true,
     });
-
   } catch (error) {
-    console.error("AI Edit API Error:", error);
+    console.error("AI Edit Error:", error);
 
     return NextResponse.json(
       {
         success: false,
-        error: error?.message || "Internal Server Error"
+        error: error.message || "Internal Server Error",
       },
       { status: 500 }
     );
