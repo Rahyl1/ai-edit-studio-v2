@@ -9,15 +9,38 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
 
-  const handleProcess = async () => {
-    if (!prompt.trim()) {
-      alert("অনুগ্রহ করে একটি প্রম্পট লিখুন!");
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files?.[0];
+
+    if (!selectedFile) {
+      setFile(null);
       return;
     }
 
-    // Video AI will be added in a later step
-    if (activeTab === "video") {
-      alert("Video AI Edit পরের STEP-এ চালু করা হবে। এখন Image AI Edit পরীক্ষা করুন।");
+    if (!selectedFile.type.startsWith("image/")) {
+      alert("অনুগ্রহ করে একটি ছবি নির্বাচন করুন।");
+      e.target.value = "";
+      setFile(null);
+      return;
+    }
+
+    setFile(selectedFile);
+    setResult(null);
+  };
+
+  const handleProcess = async () => {
+    if (activeTab !== "image") {
+      alert("এই মুহূর্তে Image AI Edit পরীক্ষা করুন।");
+      return;
+    }
+
+    if (!file) {
+      alert("প্রথমে একটি ছবি নির্বাচন করুন।");
+      return;
+    }
+
+    if (!prompt.trim()) {
+      alert("অনুগ্রহ করে একটি AI Prompt লিখুন।");
       return;
     }
 
@@ -25,9 +48,28 @@ export default function Home() {
     setResult(null);
 
     try {
-      // IMPORTANT:
-      // Do NOT convert the image to Base64.
-      // The current AI generation endpoint only needs the prompt.
+      const imageUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          resolve(reader.result);
+        };
+
+        reader.onerror = () => {
+          reject(new Error("ছবিটি পড়তে সমস্যা হয়েছে।"));
+        };
+
+        reader.readAsDataURL(file);
+      });
+
+      if (
+        !imageUrl ||
+        typeof imageUrl !== "string" ||
+        !imageUrl.startsWith("data:image/")
+      ) {
+        throw new Error("ছবির ডাটা সঠিকভাবে তৈরি হয়নি।");
+      }
+
       const res = await fetch("/api/edit", {
         method: "POST",
         headers: {
@@ -35,46 +77,46 @@ export default function Home() {
         },
         body: JSON.stringify({
           prompt: prompt.trim(),
+          imageUrl: imageUrl,
+          isVideo: false,
         }),
       });
 
-      // Safely check the response before reading JSON
-      const contentType = res.headers.get("content-type") || "";
+      const text = await res.text();
 
-      if (!contentType.includes("application/json")) {
-        const text = await res.text();
+      let data;
 
+      try {
+        data = JSON.parse(text);
+      } catch {
         throw new Error(
-          `Server JSON response দেয়নি। Status: ${res.status}. Response: ${text.slice(
-            0,
-            200
-          )}`
+          "Server থেকে সঠিক JSON response আসেনি।"
         );
       }
-
-      const data = await res.json();
 
       if (!res.ok) {
         throw new Error(
-          data.error || `Server error (${res.status})`
+          data.error ||
+          data.message ||
+          "AI editing failed."
         );
       }
 
-      if (data.success && data.resultUrl) {
-        setResult(data.resultUrl);
-      } else if (data.resultUrl) {
+      if (data.resultUrl) {
         setResult(data.resultUrl);
       } else {
         throw new Error(
-          data.error || "AI কোনো আউটপুট দেয়নি!"
+          data.error ||
+          "AI কোনো edited image ফেরত দেয়নি।"
         );
       }
+
     } catch (err) {
       console.error("AI Edit Error:", err);
 
       alert(
-        "প্রসেসিংয়ে ভুল হয়েছে:\n\n" +
-          (err.message || "Unknown error")
+        "প্রসেসিংয়ে ভুল হয়েছে: " +
+        (err.message || "Unknown error")
       );
     } finally {
       setLoading(false);
@@ -104,6 +146,7 @@ export default function Home() {
           boxSizing: "border-box",
         }}
       >
+
         <h1
           style={{
             color: "#22d3ee",
@@ -123,10 +166,9 @@ export default function Home() {
             marginBottom: "20px",
           }}
         >
-          আপনার টেক্সট প্রম্পট দিয়ে AI ছবি ও ভিডিও তৈরি করুন
+          আপনার ছবি AI দিয়ে এডিট করুন
         </p>
 
-        {/* TABS */}
         <div
           style={{
             display: "flex",
@@ -137,11 +179,12 @@ export default function Home() {
             borderRadius: "12px",
           }}
         >
+
           <button
             onClick={() => {
               setActiveTab("image");
-              setResult(null);
               setFile(null);
+              setResult(null);
             }}
             style={{
               flex: 1,
@@ -164,8 +207,8 @@ export default function Home() {
           <button
             onClick={() => {
               setActiveTab("video");
-              setResult(null);
               setFile(null);
+              setResult(null);
             }}
             style={{
               flex: 1,
@@ -184,9 +227,9 @@ export default function Home() {
           >
             🎥 Video AI Edit
           </button>
+
         </div>
 
-        {/* FILE INPUT */}
         <div
           style={{
             display: "flex",
@@ -194,7 +237,9 @@ export default function Home() {
             gap: "16px",
           }}
         >
+
           <div>
+
             <label
               style={{
                 fontSize: "13px",
@@ -203,24 +248,13 @@ export default function Home() {
                 marginBottom: "8px",
               }}
             >
-              {activeTab === "image"
-                ? "ছবি নির্বাচন করুন (ঐচ্ছিক):"
-                : "ভিডিও নির্বাচন করুন (ঐচ্ছিক):"}
+              ছবি নির্বাচন করুন:
             </label>
 
             <input
               type="file"
-              accept={
-                activeTab === "image"
-                  ? "image/*"
-                  : "video/*"
-              }
-              onChange={(e) => {
-                const selectedFile =
-                  e.target.files?.[0] || null;
-
-                setFile(selectedFile);
-              }}
+              accept="image/*"
+              onChange={handleFileChange}
               style={{
                 width: "100%",
                 padding: "12px",
@@ -234,21 +268,22 @@ export default function Home() {
             />
 
             {file && (
-              <p
+              <div
                 style={{
                   marginTop: "8px",
-                  fontSize: "12px",
+                  fontSize: "13px",
                   color: "#22d3ee",
                   wordBreak: "break-word",
                 }}
               >
-                নির্বাচিত ফাইল: {file.name}
-              </p>
+                ✅ নির্বাচিত ছবি: {file.name}
+              </div>
             )}
+
           </div>
 
-          {/* PROMPT */}
           <div>
+
             <label
               style={{
                 fontSize: "13px",
@@ -257,20 +292,14 @@ export default function Home() {
                 marginBottom: "8px",
               }}
             >
-              আপনার প্রম্পট (AI নির্দেশনা):
+              আপনার Prompt:
             </label>
 
             <textarea
-              rows={4}
+              rows={5}
               value={prompt}
-              onChange={(e) =>
-                setPrompt(e.target.value)
-              }
-              placeholder={
-                activeTab === "image"
-                  ? "যেমন: A beautiful realistic red rose, cinematic lighting..."
-                  : "যেমন: A cat playing guitar on Mars..."
-              }
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="যেমন: আমার হাতে একটি সুন্দর লাল গোলাপ যোগ করো। আমার মুখ, চেহারা ও পরিচয় অপরিবর্তিত রাখো।"
               style={{
                 width: "100%",
                 padding: "12px",
@@ -283,18 +312,19 @@ export default function Home() {
                 fontSize: "14px",
               }}
             />
+
           </div>
 
-          {/* PROCESS BUTTON */}
           <button
             onClick={handleProcess}
             disabled={loading}
             style={{
               width: "100%",
               padding: "16px",
-              backgroundColor: loading
-                ? "#374151"
-                : "#06b6d4",
+              backgroundColor:
+                loading
+                  ? "#374151"
+                  : "#06b6d4",
               color: "#fff",
               border: "none",
               borderRadius: "10px",
@@ -306,12 +336,12 @@ export default function Home() {
             }}
           >
             {loading
-              ? "⏳ AI জেনারেট হচ্ছে..."
+              ? "⏳ AI এডিট হচ্ছে..."
               : "🪄 ম্যাজিক এডিট করুন"}
           </button>
+
         </div>
 
-        {/* RESULT */}
         {result && (
           <div
             style={{
@@ -321,6 +351,7 @@ export default function Home() {
               paddingTop: "16px",
             }}
           >
+
             <h3
               style={{
                 color: "#22d3ee",
@@ -328,12 +359,12 @@ export default function Home() {
                 marginBottom: "10px",
               }}
             >
-              AI ফলাফল:
+              ✅ এডিট সম্পন্ন
             </h3>
 
             <img
               src={result}
-              alt="AI Result"
+              alt="AI Edited Result"
               style={{
                 width: "100%",
                 borderRadius: "10px",
@@ -359,8 +390,10 @@ export default function Home() {
             >
               📥 ডাউনলোড করুন
             </a>
+
           </div>
         )}
+
       </div>
     </div>
   );
