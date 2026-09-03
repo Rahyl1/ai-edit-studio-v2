@@ -27,29 +27,24 @@ export async function POST(req) {
       );
     }
 
-    // Pollinations API key
-    const apiKey = process.env.POLLINATIONS_API_KEY;
+    // Hugging Face API Token
+    const hfToken = process.env.HF_TOKEN;
 
-    if (!apiKey) {
+    if (!hfToken) {
       return NextResponse.json(
         {
           success: false,
           error:
-            "POLLINATIONS_API_KEY is missing in Vercel Environment Variables.",
+            "HF_TOKEN is missing in Vercel Environment Variables.",
         },
         { status: 500 }
       );
     }
 
     /*
-      imageUrl comes from the browser as:
-
+      Browser image:
       data:image/jpeg;base64,...
-      OR
       data:image/png;base64,...
-
-      We convert that Data URL into a real file
-      and send it to the Image Edit API.
     */
 
     const match = imageUrl.match(
@@ -75,160 +70,91 @@ export async function POST(req) {
     );
 
     /*
-      Create multipart form
+      Hugging Face image-to-image endpoint.
+      FLUX Kontext is designed for image editing
+      while preserving the source image.
     */
 
-    const form = new FormData();
-
-    const extension =
-      mimeType === "image/png"
-        ? "png"
-        : mimeType === "image/webp"
-        ? "webp"
-        : "jpg";
-
-    const imageBlob = new Blob(
-      [imageBuffer],
-      {
-        type: mimeType,
-      }
-    );
-
-    form.append(
-      "image",
-      imageBlob,
-      `source.${extension}`
-    );
-
-    /*
-      Important instruction:
-      Keep the original person/object and only
-      make the requested changes.
-    */
+    const model =
+      "black-forest-labs/FLUX.1-Kontext-dev";
 
     const editPrompt = `
-Edit the provided image.
+Edit the provided image according to the user's instruction.
 
 IMPORTANT:
-- Keep the exact same person from the original image.
-- Do NOT change the person's gender.
+- Preserve the exact same person from the original image.
 - Do NOT replace the person with another person.
-- Preserve the original face, identity, hairstyle, body, clothing and pose unless the user explicitly asks to change them.
+- Preserve the person's identity and facial features.
+- Do NOT change the person's gender.
+- Preserve hairstyle, body appearance, clothing and pose unless explicitly requested.
 - Only make the changes requested by the user.
-- Keep the image realistic and natural.
+- Keep the result photorealistic and natural.
 
-User's editing instruction:
+User instruction:
 ${prompt}
 `;
 
-    form.append(
-      "prompt",
-      editPrompt
-    );
-
-    form.append(
-      "model",
-      "kontext"
-    );
-
-    form.append(
-      "size",
-      "1024x1024"
-    );
-
-    form.append(
-      "response_format",
-      "b64_json"
-    );
+    /*
+      Hugging Face Inference Providers
+    */
 
     const response = await fetch(
-      "https://gen.pollinations.ai/v1/images/edits",
+      `https://router.huggingface.co/hf-inference/models/${model}`,
       {
         method: "POST",
 
         headers: {
-          Authorization:
-            `Bearer ${apiKey}`,
+          Authorization: `Bearer ${hfToken}`,
+          "Content-Type": mimeType,
         },
 
-        body: form,
+        body: imageBuffer,
       }
     );
 
-    const responseText =
-      await response.text();
+    /*
+      Read response safely.
+    */
+
+    const responseBuffer =
+      await response.arrayBuffer();
 
     if (!response.ok) {
+      const errorText = new TextDecoder().decode(
+        responseBuffer
+      );
+
       console.error(
-        "Pollinations API Error:",
-        responseText
+        "Hugging Face API Error:",
+        errorText
       );
 
       return NextResponse.json(
         {
           success: false,
           error:
-            `AI editing failed (${response.status}).`,
-          details: responseText.slice(0, 1000),
+            `Hugging Face AI failed (${response.status}).`,
+          details: errorText.slice(0, 1000),
         },
-        { status: 500 }
-      );
-    }
-
-    let data;
-
-    try {
-      data =
-        JSON.parse(responseText);
-    } catch {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "AI returned an invalid response.",
-          details:
-            responseText.slice(0, 500),
-        },
-        { status: 500 }
+        { status: response.status }
       );
     }
 
     /*
-      Pollinations returns:
-      data[0].b64_json
-      when response_format = b64_json
+      Hugging Face returns an image.
+      Convert it to a browser Data URL.
     */
 
     const resultBase64 =
-      data?.data?.[0]?.b64_json;
+      Buffer.from(responseBuffer).toString(
+        "base64"
+      );
 
-    const resultUrl =
-      data?.data?.[0]?.url;
-
-    if (resultBase64) {
-      return NextResponse.json({
-        success: true,
-        resultUrl:
-          `data:image/png;base64,${resultBase64}`,
-      });
-    }
-
-    if (resultUrl) {
-      return NextResponse.json({
-        success: true,
-        resultUrl,
-      });
-    }
-
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          "AI did not return an edited image.",
-      },
-      { status: 500 }
-    );
-
+    return NextResponse.json({
+      success: true,
+      resultUrl:
+        `data:image/png;base64,${resultBase64}`,
+    });
   } catch (error) {
     console.error(
       "Image Edit Error:",
