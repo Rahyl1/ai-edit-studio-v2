@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { InferenceClient } from "@huggingface/inference";
 
 export async function POST(req) {
   try {
@@ -27,26 +28,19 @@ export async function POST(req) {
       );
     }
 
-    // Hugging Face API Token
     const hfToken = process.env.HF_TOKEN;
 
     if (!hfToken) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "HF_TOKEN is missing in Vercel Environment Variables.",
+          error: "HF_TOKEN is missing in Vercel Environment Variables.",
         },
         { status: 500 }
       );
     }
 
-    /*
-      Browser image:
-      data:image/jpeg;base64,...
-      data:image/png;base64,...
-    */
-
+    // Convert browser Data URL to Blob
     const match = imageUrl.match(
       /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
     );
@@ -64,109 +58,65 @@ export async function POST(req) {
     const mimeType = match[1];
     const base64Data = match[2];
 
-    const imageBuffer = Buffer.from(
-      base64Data,
-      "base64"
-    );
+    const imageBuffer = Buffer.from(base64Data, "base64");
 
-    /*
-      Hugging Face image-to-image endpoint.
-      FLUX Kontext is designed for image editing
-      while preserving the source image.
-    */
+    const imageBlob = new Blob([imageBuffer], {
+      type: mimeType,
+    });
 
-    const model =
-      "black-forest-labs/FLUX.1-Kontext-dev";
+    const client = new InferenceClient(hfToken);
 
     const editPrompt = `
-Edit the provided image according to the user's instruction.
+Edit this image according to the user's instruction.
 
-IMPORTANT:
-- Preserve the exact same person from the original image.
-- Do NOT replace the person with another person.
-- Preserve the person's identity and facial features.
-- Do NOT change the person's gender.
-- Preserve hairstyle, body appearance, clothing and pose unless explicitly requested.
-- Only make the changes requested by the user.
-- Keep the result photorealistic and natural.
+Preserve the original person's identity, face, hairstyle,
+body appearance, clothing and pose unless the user explicitly
+asks to change them.
+
+Do not replace the person with another person.
+Keep the result photorealistic and natural.
 
 User instruction:
 ${prompt}
 `;
 
-    /*
-      Hugging Face Inference Providers
-    */
+    const result = await client.imageToImage({
+      model: "black-forest-labs/FLUX.1-Kontext-dev",
+      inputs: imageBlob,
+      parameters: {
+        prompt: editPrompt,
+      },
+    });
 
-    const response = await fetch(
-      `https://router.huggingface.co/hf-inference/models/${model}`,
-      {
-        method: "POST",
-
-        headers: {
-          Authorization: `Bearer ${hfToken}`,
-          "Content-Type": mimeType,
-        },
-
-        body: imageBuffer,
-      }
-    );
-
-    /*
-      Read response safely.
-    */
-
-    const responseBuffer =
-      await response.arrayBuffer();
-
-    if (!response.ok) {
-      const errorText = new TextDecoder().decode(
-        responseBuffer
-      );
-
-      console.error(
-        "Hugging Face API Error:",
-        errorText
-      );
-
+    if (!result) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            `Hugging Face AI failed (${response.status}).`,
-          details: errorText.slice(0, 1000),
+          error: "Hugging Face returned an empty result.",
         },
-        { status: response.status }
+        { status: 502 }
       );
     }
 
-    /*
-      Hugging Face returns an image.
-      Convert it to a browser Data URL.
-    */
+    const resultBuffer = Buffer.from(
+      await result.arrayBuffer()
+    );
 
-    const resultBase64 =
-      Buffer.from(responseBuffer).toString(
-        "base64"
-      );
+    const resultBase64 = resultBuffer.toString("base64");
 
     return NextResponse.json({
       success: true,
-      resultUrl:
-        `data:image/png;base64,${resultBase64}`,
+      resultUrl: `data:image/png;base64,${resultBase64}`,
     });
   } catch (error) {
-    console.error(
-      "Image Edit Error:",
-      error
-    );
+    console.error("Image Edit Error:", error);
 
     return NextResponse.json(
       {
         success: false,
         error:
-          error.message ||
-          "Internal Server Error",
+          error?.message ||
+          "Hugging Face image editing failed.",
       },
       { status: 500 }
     );
