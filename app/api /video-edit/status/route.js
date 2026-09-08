@@ -23,8 +23,7 @@ export async function GET(req) {
 
     const { searchParams } = new URL(req.url);
 
-    const requestId =
-      searchParams.get("requestId");
+    const requestId = searchParams.get("requestId");
 
     if (!requestId) {
       return NextResponse.json(
@@ -52,15 +51,13 @@ export async function GET(req) {
         }
       );
 
-      const videoUrl =
-        result?.data?.video?.url;
+      const videoUrl = result?.data?.video?.url;
 
       if (!videoUrl) {
         return NextResponse.json(
           {
             success: false,
-            error:
-              "AI finished but no output video was returned.",
+            error: "AI finished but no output video was returned.",
           },
           { status: 502 }
         );
@@ -86,11 +83,9 @@ export async function GET(req) {
       status: status.status,
       message: "Video is still processing.",
     });
+
   } catch (error) {
-    console.error(
-      "Video Edit Status Error:",
-      error
-    );
+    console.error("Video Edit Status Error:", error);
 
     return NextResponse.json(
       {
