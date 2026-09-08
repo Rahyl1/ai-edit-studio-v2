@@ -26,12 +26,9 @@ export async function POST(req) {
     const video = formData.get("video");
     const prompt = (formData.get("prompt") || "").trim();
     const style = (formData.get("style") || "cinematic").trim();
-    const aspectRatio =
-      formData.get("aspectRatio") || "9:16";
-    const resolution =
-      formData.get("resolution") || "720p";
-    const audioSetting =
-      formData.get("audioSetting") || "origin";
+    const aspectRatio = formData.get("aspectRatio") || "9:16";
+    const resolution = formData.get("resolution") || "720p";
+    const audioSetting = formData.get("audioSetting") || "origin";
 
     if (!video || typeof video === "string") {
       return NextResponse.json(
@@ -53,7 +50,6 @@ export async function POST(req) {
       );
     }
 
-    // Maximum 100 MB
     if (video.size > 100 * 1024 * 1024) {
       return NextResponse.json(
         {
@@ -64,7 +60,6 @@ export async function POST(req) {
       );
     }
 
-    // Basic video MIME validation
     if (!video.type.startsWith("video/")) {
       return NextResponse.json(
         {
@@ -75,21 +70,11 @@ export async function POST(req) {
       );
     }
 
-    /*
-      Upload video to fal storage.
-      The AI provider receives a hosted video URL
-      instead of a huge base64 payload.
-    */
-
     const videoUrl = await fal.storage.upload(video);
-
-    /*
-      Build the AI editing instruction.
-    */
 
     const styleInstructions = {
       cinematic:
-        "Create a cinematic, professional film look with natural lighting, smooth visual treatment and realistic details.",
+        "Create a cinematic professional film look with natural lighting, smooth visual treatment and realistic details.",
 
       funny:
         "Give the video a fun, energetic and playful visual style while keeping the main subject recognizable.",
@@ -105,8 +90,7 @@ export async function POST(req) {
     };
 
     const styleText =
-      styleInstructions[style] ||
-      styleInstructions.custom;
+      styleInstructions[style] || styleInstructions.custom;
 
     const finalPrompt = `
 Edit the provided video according to the user's instruction.
@@ -127,20 +111,15 @@ User instruction:
 ${prompt}
 `;
 
-    /*
-      Submit the AI video editing job.
-    */
-
     const { request_id } = await fal.queue.submit(
       "fal-ai/wan/v2.7/edit-video",
       {
         input: {
           prompt: finalPrompt,
           video_url: videoUrl,
+
           resolution:
-            resolution === "1080p"
-              ? "1080p"
-              : "720p",
+            resolution === "1080p" ? "1080p" : "720p",
 
           aspect_ratio: [
             "16:9",
@@ -153,9 +132,7 @@ ${prompt}
             : "9:16",
 
           audio_setting:
-            audioSetting === "auto"
-              ? "auto"
-              : "origin",
+            audioSetting === "auto" ? "auto" : "origin",
 
           enable_safety_checker: true,
         },
@@ -167,11 +144,9 @@ ${prompt}
       requestId: request_id,
       message: "Video editing job submitted successfully.",
     });
+
   } catch (error) {
-    console.error(
-      "Video Edit Submit Error:",
-      error
-    );
+    console.error("Video Edit Submit Error:", error);
 
     return NextResponse.json(
       {
