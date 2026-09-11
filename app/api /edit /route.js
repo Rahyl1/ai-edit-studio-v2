@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import { InferenceClient } from "@huggingface/inference";
 
@@ -68,19 +69,15 @@ export async function POST(request) {
     const mimeType = match[1];
     const base64Data = match[2];
 
-    const imageBuffer = Buffer.from(base64Data, "base64");
+    const imageBuffer = Buffer.from(
+      base64Data,
+      "base64"
+    );
 
     const client = new InferenceClient(hfToken);
 
-    /*
-     * Image-to-image editing model.
-     * যদি আপনার Hugging Face account-এ এই model access না থাকে,
-     * পরে আপনার available model অনুযায়ী এটি পরিবর্তন করা যাবে।
-     */
-    const model = "timbrooks/instruct-pix2pix";
-
     const result = await client.imageToImage({
-      model,
+      model: "timbrooks/instruct-pix2pix",
       inputs: imageBuffer,
       parameters: {
         prompt: prompt.trim(),
@@ -88,7 +85,9 @@ export async function POST(request) {
     });
 
     if (!result) {
-      throw new Error("Hugging Face কোনো image result দেয়নি।");
+      throw new Error(
+        "Hugging Face কোনো image result দেয়নি।"
+      );
     }
 
     let outputBuffer;
@@ -104,23 +103,33 @@ export async function POST(request) {
     } else if (result?.data) {
       outputBuffer = Buffer.from(result.data);
     } else {
-      throw new Error("AI image response format সঠিক নয়।");
+      throw new Error(
+        "AI image response format সঠিক নয়।"
+      );
     }
 
     if (!outputBuffer || outputBuffer.length === 0) {
-      throw new Error("Edited image তৈরি হয়নি।");
+      throw new Error(
+        "Edited image তৈরি হয়নি।"
+      );
     }
 
-    const outputBase64 = outputBuffer.toString("base64");
+    const outputBase64 =
+      outputBuffer.toString("base64");
 
-    const resultUrl = `data:${mimeType};base64,${outputBase64}`;
+    const resultUrl =
+      `data:${mimeType};base64,${outputBase64}`;
 
     return NextResponse.json({
       success: true,
       resultUrl,
     });
+
   } catch (error) {
-    console.error("Image AI Edit Error:", error);
+    console.error(
+      "Image AI Edit Error:",
+      error
+    );
 
     return NextResponse.json(
       {
