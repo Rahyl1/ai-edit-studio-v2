@@ -3,17 +3,15 @@
 import { useState } from "react";
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState("image"); // "image" or "video"
+  const [activeTab, setActiveTab] = useState("image");
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [prompt, setPrompt] = useState("");
   const [videoStyle, setVideoStyle] = useState("Cinematic");
   const [aspectRatio, setAspectRatio] = useState("9:16");
-  const [resolution, setResolution] = useState("720p");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
 
-  // Quick prompt presets for users
   const presets = [
     "👗 Change outfit to elegant designer kurti",
     "✨ Add cinematic lighting and 8k realistic polish",
@@ -39,7 +37,6 @@ export default function Home() {
     setResult(null);
 
     try {
-      // Append safety & copyright-free parameters to prompt
       const enhancedPrompt = `${prompt.trim()}, copyright-free original creation, highly detailed, 8k resolution, photorealistic`;
 
       const res = await fetch("/api/edit", {
@@ -50,7 +47,6 @@ export default function Home() {
           isVideo: activeTab === "video",
           style: videoStyle,
           aspectRatio,
-          resolution,
         }),
       });
 
@@ -70,108 +66,86 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+    <div style={{ backgroundColor: "#0b0f19", color: "#ffffff", minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", padding: "20px", fontFamily: "sans-serif" }}>
+      <div style={{ backgroundColor: "#151c2c", border: "1px solid #2a3447", borderRadius: "16px", padding: "24px", width: "100%", maxWidth: "480px", boxSizing: "border-box" }}>
         
         {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-cyan-400 flex items-center justify-center gap-2">
-            ✨ AI Edit Studio
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            কপিরাইট-মুক্ত ছবি ও ভিডিও AI দিয়ে তৈরি করুন
-          </p>
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <h1 style={{ color: "#00d8f6", fontSize: "22px", margin: "0 0 6px 0" }}>✨ AI Edit Studio</h1>
+          <p style={{ color: "#8a99ad", fontSize: "12px", margin: 0 }}>ছবি ও ভিডিও AI দিয়ে কপিরাইট-মুক্ত এডিট করুন</p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="grid grid-cols-2 gap-2 bg-slate-950 p-1.5 rounded-xl mb-6">
+        {/* Tab Buttons */}
+        <div style={{ display: "flex", gap: "8px", backgroundColor: "#0b0f19", padding: "6px", borderRadius: "10px", marginBottom: "20px" }}>
           <button
             onClick={() => { setActiveTab("image"); setResult(null); }}
-            className={`py-2 text-sm font-medium rounded-lg transition ${
-              activeTab === "image"
-                ? "bg-cyan-500 text-slate-950 shadow-md font-bold"
-                : "text-slate-400 hover:text-white"
-            }`}
+            style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "none", backgroundColor: activeTab === "image" ? "#00d8f6" : "transparent", color: activeTab === "image" ? "#0b0f19" : "#8a99ad", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }}
           >
             🖼️ Image AI Edit
           </button>
           <button
             onClick={() => { setActiveTab("video"); setResult(null); }}
-            className={`py-2 text-sm font-medium rounded-lg transition ${
-              activeTab === "video"
-                ? "bg-cyan-500 text-slate-950 shadow-md font-bold"
-                : "text-slate-400 hover:text-white"
-            }`}
+            style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "none", backgroundColor: activeTab === "video" ? "#00d8f6" : "transparent", color: activeTab === "video" ? "#0b0f19" : "#8a99ad", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }}
           >
             🎥 Video AI Edit
           </button>
         </div>
 
-        {/* File Upload */}
-        <div className="mb-4">
-          <label className="block text-xs text-slate-400 mb-2 font-medium">
+        {/* File Select */}
+        <div style={{ marginBottom: "16px" }}>
+          <label style={{ display: "block", fontSize: "12px", color: "#8a99ad", marginBottom: "6px" }}>
             {activeTab === "image" ? "ছবি নির্বাচন করুন:" : "ভিডিও নির্বাচন করুন:"}
           </label>
           <input
             type="file"
             accept={activeTab === "image" ? "image/*" : "video/*"}
             onChange={handleFileChange}
-            className="w-full text-xs text-slate-300 bg-slate-950 border border-slate-800 rounded-lg p-2.5 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-slate-800 file:text-cyan-400 hover:file:bg-slate-700 cursor-pointer"
+            style={{ width: "100%", backgroundColor: "#0b0f19", border: "1px solid #2a3447", color: "#fff", padding: "8px", borderRadius: "8px", boxSizing: "border-box", fontSize: "12px" }}
           />
         </div>
 
-        {/* Preview Section */}
+        {/* Preview */}
         {preview && (
-          <div className="mb-4 rounded-xl overflow-hidden border border-slate-800 max-h-48 flex justify-center bg-slate-950">
+          <div style={{ marginBottom: "16px", textAlign: "center", backgroundColor: "#0b0f19", padding: "10px", borderRadius: "8px", border: "1px solid #2a3447" }}>
             {activeTab === "image" ? (
-              <img src={preview} alt="Upload preview" className="object-contain h-48" />
+              <img src={preview} alt="Preview" style={{ maxHeight: "180px", maxWidth: "100%", borderRadius: "6px" }} />
             ) : (
-              <video src={preview} controls className="h-48" />
+              <video src={preview} controls style={{ maxHeight: "180px", maxWidth: "100%", borderRadius: "6px" }} />
             )}
           </div>
         )}
 
-        {/* Video Extra Controls */}
+        {/* Video Options */}
         {activeTab === "video" && (
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Video Style</label>
-              <select
-                value={videoStyle}
-                onChange={(e) => setVideoStyle(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200"
-              >
+          <div style={{ display: "flex", gap: "10px", marginBottom: "16px" }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: "block", fontSize: "11px", color: "#8a99ad", marginBottom: "4px" }}>Video Style</label>
+              <select value={videoStyle} onChange={(e) => setVideoStyle(e.target.value)} style={{ width: "100%", backgroundColor: "#0b0f19", border: "1px solid #2a3447", color: "#fff", padding: "8px", borderRadius: "6px", fontSize: "12px" }}>
                 <option>Cinematic</option>
                 <option>Anime</option>
                 <option>3D Render</option>
-                <option>Realistic</option>
               </select>
             </div>
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Aspect Ratio</label>
-              <select
-                value={aspectRatio}
-                onChange={(e) => setAspectRatio(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200"
-              >
-                <option>9:16 Shorts/Reels</option>
-                <option>16:9 Landscape</option>
-                <option>1:1 Square</option>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: "block", fontSize: "11px", color: "#8a99ad", marginBottom: "4px" }}>Aspect Ratio</label>
+              <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)} style={{ width: "100%", backgroundColor: "#0b0f19", border: "1px solid #2a3447", color: "#fff", padding: "8px", borderRadius: "6px", fontSize: "12px" }}>
+                <option>9:16 Shorts</option>
+                <option>16:9 Wide</option>
               </select>
             </div>
           </div>
         )}
 
-        {/* Quick Presets for Image */}
+        {/* Presets */}
         {activeTab === "image" && (
-          <div className="mb-3">
-            <span className="text-[10px] text-slate-400 block mb-1.5">দ্রুত সিলেক্ট করুন (Preset):</span>
-            <div className="flex flex-wrap gap-1.5">
+          <div style={{ marginBottom: "16px" }}>
+            <span style={{ fontSize: "11px", color: "#8a99ad", display: "block", marginBottom: "6px" }}>দ্রুত সিলেক্ট করুন (Presets):</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               {presets.map((p, idx) => (
                 <button
                   key={idx}
                   onClick={() => setPrompt(p.replace(/^[^\s]+\s/, ""))}
-                  className="text-[11px] bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-md px-2.5 py-1 transition"
+                  style={{ backgroundColor: "#0b0f19", border: "1px solid #2a3447", color: "#d1d5db", padding: "6px 10px", borderRadius: "6px", textAlign: "left", cursor: "pointer", fontSize: "11px" }}
                 >
                   {p}
                 </button>
@@ -181,16 +155,14 @@ export default function Home() {
         )}
 
         {/* Prompt Input */}
-        <div className="mb-5">
-          <label className="block text-xs text-slate-400 mb-1">
-            ✨ AI Edit Prompt:
-          </label>
+        <div style={{ marginBottom: "20px" }}>
+          <label style={{ display: "block", fontSize: "12px", color: "#8a99ad", marginBottom: "6px" }}>✨ AI Prompt:</label>
           <textarea
             rows="3"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="যেমন: ছবিতে একটি সুন্দর লাল রঙের কুর্তি পরিয়ে দাও এবং ব্যাকগ্রাউন্ড সুন্দর করো..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 transition"
+            placeholder="যেমন: ছবিতে একটি সুন্দর লাল রঙের কুর্তি পরিয়ে দাও..."
+            style={{ width: "100%", backgroundColor: "#0b0f19", border: "1px solid #2a3447", color: "#fff", padding: "10px", borderRadius: "8px", boxSizing: "border-box", fontSize: "12px", resize: "none" }}
           />
         </div>
 
@@ -198,37 +170,30 @@ export default function Home() {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full py-3 bg-cyan-500 hover:bg-cyan-400 disabled:bg-slate-700 text-slate-950 font-bold rounded-xl text-sm transition shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+          style={{ width: "100%", padding: "12px", backgroundColor: loading ? "#4b5563" : "#00d8f6", color: "#0b0f19", fontWeight: "bold", border: "none", borderRadius: "10px", cursor: "pointer", fontSize: "14px" }}
         >
           {loading ? "⏳ প্রসেসিং হচ্ছে..." : activeTab === "image" ? "🪄 ম্যাজিক এডিট করুন" : "🎬 AI Video Edit করুন"}
         </button>
 
-        {/* Output Result */}
+        {/* Result Area */}
         {result && (
-          <div className="mt-6 border-t border-slate-800 pt-4 text-center">
-            <h3 className="text-xs text-cyan-400 mb-3 font-semibold">ফলাফল (Copyright Free):</h3>
-            <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-950 p-2">
-              {activeTab === "image" ? (
-                <img src={result} alt="AI Result" className="w-full rounded-lg" />
-              ) : (
-                <video src={result} controls className="w-full rounded-lg" />
-              )}
-            </div>
+          <div style={{ marginTop: "20px", borderTop: "1px solid #2a3447", paddingTop: "16px", textAlign: "center" }}>
+            <h3 style={{ color: "#00d8f6", fontSize: "13px", marginBottom: "10px" }}>ফলাফল (Copyright Free):</h3>
+            {activeTab === "image" ? (
+              <img src={result} alt="AI Result" style={{ width: "100%", borderRadius: "8px" }} />
+            ) : (
+              <video src={result} controls style={{ width: "100%", borderRadius: "8px" }} />
+            )}
             <a
               href={result}
               target="_blank"
               download
-              className="inline-block mt-3 text-xs bg-slate-800 hover:bg-slate-700 text-cyan-400 px-4 py-2 rounded-lg border border-slate-700"
+              style={{ display: "inline-block", marginTop: "10px", fontSize: "12px", color: "#00d8f6", textDecoration: "none" }}
             >
-              ⬇️ ফুল কোয়ালিটিতে ডাউনলোডের জন্য ক্লিক করুন
+              ⬇️ ফুল কোয়ালিটিতে ডাউনলোড করুন
             </a>
           </div>
         )}
-
-        {/* Copyright Notice */}
-        <p className="text-[10px] text-slate-500 text-center mt-5">
-          এই টুলের তৈরি করা কনটেন্ট কমার্শিয়াল ব্যবহারের জন্য সম্পূর্ণ কপিরাইট-মুক্ত।
-        </p>
 
       </div>
     </div>
