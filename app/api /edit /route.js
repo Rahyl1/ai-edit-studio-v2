@@ -14,12 +14,11 @@ export async function POST(request) {
       );
     }
 
-    // Pollinations AI - ১০০% ফ্রি এবং তাৎক্ষণিক রেসপন্স
+    // Pollinations AI
     const encodedPrompt = encodeURIComponent(prompt.trim());
     const seed = Math.floor(Math.random() * 1000000);
     const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&nologo=true`;
 
-    // ছবি ভ্যালিডেশন চেক
     const response = await fetch(imageUrl);
     if (!response.ok) {
       throw new Error("AI ছবি তৈরি করতে ব্যর্থ হয়েছে।");
