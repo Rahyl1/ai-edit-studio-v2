@@ -37,30 +37,31 @@ export default function Home() {
     setResult(null);
 
     try {
-      const enhancedPrompt = `${prompt.trim()}, copyright-free original creation, highly detailed, 8k resolution, photorealistic`;
+      // অটো ওয়াটারমার্ক ও লোগো রিমুভ ইনস্ট্রাকশন
+      const cleanInstruction = "remove all watermarks, remove camera brand text, remove camera logos, clear photo, photorealistic, 8k resolution";
+      const fullPrompt = `${prompt.trim()}, ${cleanInstruction}`;
+      
+      const encodedPrompt = encodeURIComponent(fullPrompt);
+      const randomSeed = Math.floor(Math.random() * 1000000);
+      
+      // Direct API URL generation
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1350&nologo=true&seed=${randomSeed}`;
 
-      const res = await fetch("/api/edit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: enhancedPrompt,
-          isVideo: activeTab === "video",
-          style: videoStyle,
-          aspectRatio,
-        }),
-      });
+      // ইমেজ লোড নিশ্চিতকরণ
+      const img = new Image();
+      img.src = imageUrl;
+      img.onload = () => {
+        setResult(imageUrl);
+        setLoading(false);
+      };
+      img.onerror = () => {
+        alert("ইমেজ প্রসেস করতে সমস্যা হয়েছে, আবার চেষ্টা করুন।");
+        setLoading(false);
+      };
 
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "প্রসেসিং সফল হয়নি।");
-      }
-
-      setResult(data.resultUrl);
     } catch (err) {
       console.error(err);
       alert("ত্রুটি: " + err.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -72,7 +73,7 @@ export default function Home() {
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "16px" }}>
           <h1 style={{ fontSize: "24px", color: "#38bdf8", margin: "0 0 4px 0", fontWeight: "bold" }}>✨ AI Edit Studio</h1>
-          <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0 }}>ছবি ও ভিডিও AI দিয়ে এডিট করুন (কপিরাইট মুক্ত)</p>
+          <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0 }}>ছবি ও ভিডিও AI দিয়ে এডিট করুন (অটো লোগো রিমুভ)</p>
         </div>
 
         {/* Tab Switcher */}
@@ -172,18 +173,14 @@ export default function Home() {
           disabled={loading}
           style={{ width: "100%", padding: "14px", backgroundColor: loading ? "#64748b" : "#38bdf8", color: "#0f172a", fontWeight: "bold", border: "none", borderRadius: "10px", cursor: "pointer", fontSize: "14px", boxShadow: "0 4px 12px rgba(56, 189, 248, 0.3)" }}
         >
-          {loading ? "⏳ এডিট হচ্ছে..." : activeTab === "image" ? "🪄 ম্যাজিক এডিট করুন" : "🎬 AI Video Edit করুন"}
+          {loading ? "⏳ এডিটিং চলছে..." : activeTab === "image" ? "🪄 ম্যাজিক এডিট করুন" : "🎬 AI Video Edit করুন"}
         </button>
 
         {/* Result Display */}
         {result && (
           <div style={{ marginTop: "20px", borderTop: "1px solid #334155", paddingTop: "14px", textAlign: "center" }}>
-            <h3 style={{ color: "#38bdf8", fontSize: "13px", marginBottom: "8px" }}>ফলাফল (Copyright Free):</h3>
-            {activeTab === "image" ? (
-              <img src={result} alt="Result" style={{ width: "100%", borderRadius: "8px", border: "1px solid #334155" }} />
-            ) : (
-              <video src={result} controls style={{ width: "100%", borderRadius: "8px", border: "1px solid #334155" }} />
-            )}
+            <h3 style={{ color: "#38bdf8", fontSize: "13px", marginBottom: "8px" }}>ফলাফল (Clean & No Logo):</h3>
+            <img src={result} alt="Result" style={{ width: "100%", borderRadius: "8px", border: "1px solid #334155" }} />
             <a href={result} target="_blank" download style={{ display: "inline-block", marginTop: "10px", fontSize: "12px", color: "#38bdf8", textDecoration: "underline" }}>
               ⬇️ ফুল কোয়ালিটিতে ডাউনলোড করুন
             </a>
