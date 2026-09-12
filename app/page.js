@@ -88,93 +88,65 @@ setVideoStatus("");
 // IMAGE AI EDIT
 // =========================
 
-const handleImageProcess = async () => {
-if (!file) {
-alert("প্রথমে একটি ছবি নির্বাচন করুন।");
-return;
-}
+  const handleImageProcess = async () => {
+    if (!file) {
+      alert("প্রথমে একটি ছবি নির্বাচন করুন।");
+      return;
+    }
 
-if (!prompt.trim()) {
-  alert("অনুগ্রহ করে একটি AI Prompt লিখুন।");
-  return;
-}
+    if (!prompt.trim()) {
+      alert("অনুগ্রহ করে একটি AI Prompt লিখুন।");
+      return;
+    }
 
-setLoading(true);
-setResult(null);
+    setLoading(true);
+    setResult(null);
 
-try {
-  const imageUrl = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
+    try {
+      const imageUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("ছবিটি পড়তে সমস্যা হয়েছে।"));
+        reader.readAsDataURL(file);
+      });
 
-    reader.onload = () => resolve(reader.result);
+      const res = await fetch("/api/edit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: prompt.trim(),
+          imageUrl,
+          isVideo: false,
+        }),
+      });
 
-    reader.onerror = () => {
-      reject(new Error("ছবিটি পড়তে সমস্যা হয়েছে।"));
-    };
+      const text = await res.text();
+      let data;
 
-    reader.readAsDataURL(file);
-  });
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Non-JSON Response Received:", text);
+        throw new Error(`সার্ভার এরর (${res.status}): Vercel পে ডাউন অথবা ফাইল সাইজ অনেক বড়।`);
+      }
 
-  if (
-    !imageUrl ||
-    typeof imageUrl !== "string" ||
-    !imageUrl.startsWith("data:image/")
-  ) {
-    throw new Error("ছবির ডাটা সঠিকভাবে তৈরি হয়নি।");
-  }
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || data.message || "AI editing failed.");
+      }
 
-  const res = await fetch("/api/edit", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      prompt: prompt.trim(),
-      imageUrl,
-      isVideo: false,
-    }),
-  });
+      if (data.resultUrl) {
+        setResult(data.resultUrl);
+      } else {
+        throw new Error("AI কোনো edited image ফেরত দেয়নি।");
+      }
+    } catch (err) {
+      console.error("Image AI Edit Error:", err);
+      alert("প্রসেসিংয়ে ভুল হয়েছে: " + (err.message || "Unknown error"));
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const text = await res.text();
-
-  let data;
-
-  try {
-    data = JSON.parse(text);
-  } catch {
-    throw new Error(
-      "Server থেকে সঠিক JSON response আসেনি।"
-    );
-  }
-
-  if (!res.ok) {
-    throw new Error(
-      data.error ||
-        data.message ||
-        "AI editing failed."
-    );
-  }
-
-  if (data.resultUrl) {
-    setResult(data.resultUrl);
-  } else {
-    throw new Error(
-      data.error ||
-        "AI কোনো edited image ফেরত দেয়নি।"
-    );
-  }
-} catch (err) {
-  console.error("Image AI Edit Error:", err);
-
-  alert(
-    "প্রসেসিংয়ে ভুল হয়েছে: " +
-      (err.message || "Unknown error")
-  );
-} finally {
-  setLoading(false);
-}
-
-};
 
 // =========================
 // VIDEO AI EDIT
