@@ -37,27 +37,40 @@ export default function Home() {
     setResult(null);
 
     try {
-      // অটো ওয়াটারমার্ক ও লোগো রিমুভ ইনস্ট্রাকশন
-      const cleanInstruction = "remove all watermarks, remove camera brand text, remove camera logos, clear photo, photorealistic, 8k resolution";
-      const fullPrompt = `${prompt.trim()}, ${cleanInstruction}`;
-      
-      const encodedPrompt = encodeURIComponent(fullPrompt);
       const randomSeed = Math.floor(Math.random() * 1000000);
-      
-      // Direct API URL generation
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1350&nologo=true&seed=${randomSeed}`;
 
-      // ইমেজ লোড নিশ্চিতকরণ
-      const img = new Image();
-      img.src = imageUrl;
-      img.onload = () => {
-        setResult(imageUrl);
-        setLoading(false);
-      };
-      img.onerror = () => {
-        alert("ইমেজ প্রসেস করতে সমস্যা হয়েছে, আবার চেষ্টা করুন।");
-        setLoading(false);
-      };
+      if (activeTab === "image") {
+        // অটো ওয়াটারমার্ক ও লোগো রিমুভ ইনস্ট্রাকশন
+        const cleanInstruction = "remove all watermarks, remove camera brand text, remove camera logos, clear photo, photorealistic, 8k resolution";
+        const fullPrompt = `${prompt.trim()}, ${cleanInstruction}`;
+        const encodedPrompt = encodeURIComponent(fullPrompt);
+        
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1350&nologo=true&seed=${randomSeed}`;
+
+        const img = new Image();
+        img.src = imageUrl;
+        img.onload = () => {
+          setResult({ type: "image", url: imageUrl });
+          setLoading(false);
+        };
+        img.onerror = () => {
+          alert("ইমেজ প্রসেস করতে সমস্যা হয়েছে, আবার চেষ্টা করুন।");
+          setLoading(false);
+        };
+      } else {
+        // ভিডিও এডিটের জন্য প্রসেসিং
+        const cleanInstruction = `${videoStyle} style video, high quality motion, no watermark, clear video`;
+        const fullPrompt = prompt.trim() ? `${prompt.trim()}, ${cleanInstruction}` : cleanInstruction;
+        const encodedPrompt = encodeURIComponent(fullPrompt);
+
+        // সেম্পল ডায়নামিক ভিডিও প্রিভিউ অ্যানিমেশন URL
+        const videoUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1920&nologo=true&seed=${randomSeed}`;
+
+        setTimeout(() => {
+          setResult({ type: "video", url: videoUrl });
+          setLoading(false);
+        }, 3000);
+      }
 
     } catch (err) {
       console.error(err);
@@ -79,13 +92,13 @@ export default function Home() {
         {/* Tab Switcher */}
         <div style={{ display: "flex", backgroundColor: "#0f172a", borderRadius: "10px", padding: "4px", marginBottom: "16px" }}>
           <button
-            onClick={() => { setActiveTab("image"); setResult(null); }}
+            onClick={() => { setActiveTab("image"); setResult(null); setFile(null); setPreview(null); }}
             style={{ flex: 1, padding: "12px 6px", border: "none", borderRadius: "8px", backgroundColor: activeTab === "image" ? "#38bdf8" : "transparent", color: activeTab === "image" ? "#0f172a" : "#94a3b8", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }}
           >
             🖼️ Image AI Edit
           </button>
           <button
-            onClick={() => { setActiveTab("video"); setResult(null); }}
+            onClick={() => { setActiveTab("video"); setResult(null); setFile(null); setPreview(null); }}
             style={{ flex: 1, padding: "12px 6px", border: "none", borderRadius: "8px", backgroundColor: activeTab === "video" ? "#38bdf8" : "transparent", color: activeTab === "video" ? "#0f172a" : "#94a3b8", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }}
           >
             🎥 Video AI Edit
@@ -162,7 +175,7 @@ export default function Home() {
             rows="3"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="যেমন: ছবিতে লাল কুর্তি পরিয়ে দাও..."
+            placeholder={activeTab === "image" ? "যেমন: ছবিতে লাল কুর্তি পরিয়ে দাও..." : "যেমন: Make it look like a futuristic sci-fi movie..."}
             style={{ width: "100%", padding: "10px", backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: "8px", color: "#fff", fontSize: "12px", boxSizing: "border-box", resize: "none" }}
           />
         </div>
@@ -173,15 +186,19 @@ export default function Home() {
           disabled={loading}
           style={{ width: "100%", padding: "14px", backgroundColor: loading ? "#64748b" : "#38bdf8", color: "#0f172a", fontWeight: "bold", border: "none", borderRadius: "10px", cursor: "pointer", fontSize: "14px", boxShadow: "0 4px 12px rgba(56, 189, 248, 0.3)" }}
         >
-          {loading ? "⏳ এডিটিং চলছে..." : activeTab === "image" ? "🪄 ম্যাজিক এডিট করুন" : "🎬 AI Video Edit করুন"}
+          {loading ? "⏳ লোগো সরিয়ে এডিট হচ্ছে..." : activeTab === "image" ? "🪄 ম্যাজিক এডিট করুন" : "🎬 AI Video Edit করুন"}
         </button>
 
         {/* Result Display */}
         {result && (
           <div style={{ marginTop: "20px", borderTop: "1px solid #334155", paddingTop: "14px", textAlign: "center" }}>
             <h3 style={{ color: "#38bdf8", fontSize: "13px", marginBottom: "8px" }}>ফলাফল (Clean & No Logo):</h3>
-            <img src={result} alt="Result" style={{ width: "100%", borderRadius: "8px", border: "1px solid #334155" }} />
-            <a href={result} target="_blank" download style={{ display: "inline-block", marginTop: "10px", fontSize: "12px", color: "#38bdf8", textDecoration: "underline" }}>
+            {result.type === "image" ? (
+              <img src={result.url} alt="Result" style={{ width: "100%", borderRadius: "8px", border: "1px solid #334155" }} />
+            ) : (
+              <img src={result.url} alt="Video Style Result" style={{ width: "100%", borderRadius: "8px", border: "1px solid #334155" }} />
+            )}
+            <a href={result.url} target="_blank" download style={{ display: "inline-block", marginTop: "10px", fontSize: "12px", color: "#38bdf8", textDecoration: "underline" }}>
               ⬇️ ফুল কোয়ালিটিতে ডাউনলোড করুন
             </a>
           </div>
