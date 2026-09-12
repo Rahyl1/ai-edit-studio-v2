@@ -66,51 +66,51 @@ export default function Home() {
   };
 
   return (
-    <div style={{ backgroundColor: "#0b0f19", color: "#ffffff", minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", padding: "20px", fontFamily: "sans-serif" }}>
-      <div style={{ backgroundColor: "#151c2c", border: "1px solid #2a3447", borderRadius: "16px", padding: "24px", width: "100%", maxWidth: "480px", boxSizing: "border-box" }}>
+    <div style={{ backgroundColor: "#0f172a", minHeight: "100vh", padding: "20px 10px", color: "#f8fafc", fontFamily: "sans-serif", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <div style={{ backgroundColor: "#1e293b", width: "100%", maxWidth: "450px", borderRadius: "16px", padding: "20px", boxShadow: "0 10px 25px rgba(0,0,0,0.5)", border: "1px solid #334155" }}>
         
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "20px" }}>
-          <h1 style={{ color: "#00d8f6", fontSize: "22px", margin: "0 0 6px 0" }}>✨ AI Edit Studio</h1>
-          <p style={{ color: "#8a99ad", fontSize: "12px", margin: 0 }}>ছবি ও ভিডিও AI দিয়ে কপিরাইট-মুক্ত এডিট করুন</p>
+          <h1 style={{ fontSize: "22px", color: "#38bdf8", margin: "0 0 5px 0", fontWeight: "bold" }}>✨ AI Edit Studio</h1>
+          <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0 }}>ছবি ও ভিডিও AI দিয়ে এডিট করুন (কপিরাইট মুক্ত)</p>
         </div>
 
-        {/* Tab Buttons */}
-        <div style={{ display: "flex", gap: "8px", backgroundColor: "#0b0f19", padding: "6px", borderRadius: "10px", marginBottom: "20px" }}>
+        {/* Tab Switcher */}
+        <div style={{ display: "flex", backgroundColor: "#0f172a", borderRadius: "10px", padding: "4px", marginBottom: "16px" }}>
           <button
             onClick={() => { setActiveTab("image"); setResult(null); }}
-            style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "none", backgroundColor: activeTab === "image" ? "#00d8f6" : "transparent", color: activeTab === "image" ? "#0b0f19" : "#8a99ad", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }}
+            style={{ flex: 1, padding: "10px", border: "none", borderRadius: "8px", backgroundColor: activeTab === "image" ? "#38bdf8" : "transparent", color: activeTab === "image" ? "#0f172a" : "#94a3b8", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }}
           >
             🖼️ Image AI Edit
           </button>
           <button
             onClick={() => { setActiveTab("video"); setResult(null); }}
-            style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "none", backgroundColor: activeTab === "video" ? "#00d8f6" : "transparent", color: activeTab === "video" ? "#0b0f19" : "#8a99ad", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }}
+            style={{ flex: 1, padding: "10px", border: "none", borderRadius: "8px", backgroundColor: activeTab === "video" ? "#38bdf8" : "transparent", color: activeTab === "video" ? "#0f172a" : "#94a3b8", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }}
           >
             🎥 Video AI Edit
           </button>
         </div>
 
-        {/* File Select */}
+        {/* File Input */}
         <div style={{ marginBottom: "16px" }}>
-          <label style={{ display: "block", fontSize: "12px", color: "#8a99ad", marginBottom: "6px" }}>
+          <label style={{ fontSize: "12px", color: "#cbd5e1", display: "block", marginBottom: "6px" }}>
             {activeTab === "image" ? "ছবি নির্বাচন করুন:" : "ভিডিও নির্বাচন করুন:"}
           </label>
           <input
             type="file"
             accept={activeTab === "image" ? "image/*" : "video/*"}
             onChange={handleFileChange}
-            style={{ width: "100%", backgroundColor: "#0b0f19", border: "1px solid #2a3447", color: "#fff", padding: "8px", borderRadius: "8px", boxSizing: "border-box", fontSize: "12px" }}
+            style={{ width: "100%", padding: "8px", backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: "8px", color: "#f8fafc", fontSize: "12px", boxSizing: "border-box" }}
           />
         </div>
 
         {/* Preview */}
         {preview && (
-          <div style={{ marginBottom: "16px", textAlign: "center", backgroundColor: "#0b0f19", padding: "10px", borderRadius: "8px", border: "1px solid #2a3447" }}>
+          <div style={{ marginBottom: "16px", textAlign: "center", backgroundColor: "#0f172a", padding: "10px", borderRadius: "8px", border: "1px solid #334155" }}>
             {activeTab === "image" ? (
-              <img src={preview} alt="Preview" style={{ maxHeight: "180px", maxWidth: "100%", borderRadius: "6px" }} />
+              <img src={preview} alt="Preview" style={{ maxHeight: "160px", maxWidth: "100%", borderRadius: "6px" }} />
             ) : (
-              <video src={preview} controls style={{ maxHeight: "180px", maxWidth: "100%", borderRadius: "6px" }} />
+              <video src={preview} controls style={{ maxHeight: "160px", maxWidth: "100%", borderRadius: "6px" }} />
             )}
           </div>
         )}
@@ -119,16 +119,16 @@ export default function Home() {
         {activeTab === "video" && (
           <div style={{ display: "flex", gap: "10px", marginBottom: "16px" }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: "block", fontSize: "11px", color: "#8a99ad", marginBottom: "4px" }}>Video Style</label>
-              <select value={videoStyle} onChange={(e) => setVideoStyle(e.target.value)} style={{ width: "100%", backgroundColor: "#0b0f19", border: "1px solid #2a3447", color: "#fff", padding: "8px", borderRadius: "6px", fontSize: "12px" }}>
+              <label style={{ fontSize: "11px", color: "#94a3b8", display: "block", marginBottom: "4px" }}>Style</label>
+              <select value={videoStyle} onChange={(e) => setVideoStyle(e.target.value)} style={{ width: "100%", padding: "8px", backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: "6px", color: "#fff", fontSize: "12px" }}>
                 <option>Cinematic</option>
                 <option>Anime</option>
                 <option>3D Render</option>
               </select>
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: "block", fontSize: "11px", color: "#8a99ad", marginBottom: "4px" }}>Aspect Ratio</label>
-              <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)} style={{ width: "100%", backgroundColor: "#0b0f19", border: "1px solid #2a3447", color: "#fff", padding: "8px", borderRadius: "6px", fontSize: "12px" }}>
+              <label style={{ fontSize: "11px", color: "#94a3b8", display: "block", marginBottom: "4px" }}>Ratio</label>
+              <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)} style={{ width: "100%", padding: "8px", backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: "6px", color: "#fff", fontSize: "12px" }}>
                 <option>9:16 Shorts</option>
                 <option>16:9 Wide</option>
               </select>
@@ -138,14 +138,14 @@ export default function Home() {
 
         {/* Presets */}
         {activeTab === "image" && (
-          <div style={{ marginBottom: "16px" }}>
-            <span style={{ fontSize: "11px", color: "#8a99ad", display: "block", marginBottom: "6px" }}>দ্রুত সিলেক্ট করুন (Presets):</span>
+          <div style={{ marginBottom: "14px" }}>
+            <span style={{ fontSize: "11px", color: "#94a3b8", display: "block", marginBottom: "6px" }}>রেডি প্রম্পট (ক্লিক করুন):</span>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               {presets.map((p, idx) => (
                 <button
                   key={idx}
                   onClick={() => setPrompt(p.replace(/^[^\s]+\s/, ""))}
-                  style={{ backgroundColor: "#0b0f19", border: "1px solid #2a3447", color: "#d1d5db", padding: "6px 10px", borderRadius: "6px", textAlign: "left", cursor: "pointer", fontSize: "11px" }}
+                  style={{ backgroundColor: "#0f172a", border: "1px solid #334155", color: "#cbd5e1", padding: "6px 10px", borderRadius: "6px", textAlign: "left", cursor: "pointer", fontSize: "11px" }}
                 >
                   {p}
                 </button>
@@ -154,15 +154,15 @@ export default function Home() {
           </div>
         )}
 
-        {/* Prompt Input */}
-        <div style={{ marginBottom: "20px" }}>
-          <label style={{ display: "block", fontSize: "12px", color: "#8a99ad", marginBottom: "6px" }}>✨ AI Prompt:</label>
+        {/* Prompt Field */}
+        <div style={{ marginBottom: "16px" }}>
+          <label style={{ fontSize: "12px", color: "#cbd5e1", display: "block", marginBottom: "6px" }}>✨ AI Prompt:</label>
           <textarea
             rows="3"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="যেমন: ছবিতে একটি সুন্দর লাল রঙের কুর্তি পরিয়ে দাও..."
-            style={{ width: "100%", backgroundColor: "#0b0f19", border: "1px solid #2a3447", color: "#fff", padding: "10px", borderRadius: "8px", boxSizing: "border-box", fontSize: "12px", resize: "none" }}
+            placeholder="যেমন: ছবিতে লাল কুর্তি পরিয়ে দাও..."
+            style={{ width: "100%", padding: "10px", backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: "8px", color: "#fff", fontSize: "12px", boxSizing: "border-box", resize: "none" }}
           />
         </div>
 
@@ -170,27 +170,22 @@ export default function Home() {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          style={{ width: "100%", padding: "12px", backgroundColor: loading ? "#4b5563" : "#00d8f6", color: "#0b0f19", fontWeight: "bold", border: "none", borderRadius: "10px", cursor: "pointer", fontSize: "14px" }}
+          style={{ width: "100%", padding: "12px", backgroundColor: loading ? "#64748b" : "#38bdf8", color: "#0f172a", fontWeight: "bold", border: "none", borderRadius: "10px", cursor: "pointer", fontSize: "14px" }}
         >
-          {loading ? "⏳ প্রসেসিং হচ্ছে..." : activeTab === "image" ? "🪄 ম্যাজিক এডিট করুন" : "🎬 AI Video Edit করুন"}
+          {loading ? "⏳ এডিট হচ্ছে..." : activeTab === "image" ? "🪄 ম্যাজিক এডিট করুন" : "🎬 AI Video Edit করুন"}
         </button>
 
-        {/* Result Area */}
+        {/* Result Display */}
         {result && (
-          <div style={{ marginTop: "20px", borderTop: "1px solid #2a3447", paddingTop: "16px", textAlign: "center" }}>
-            <h3 style={{ color: "#00d8f6", fontSize: "13px", marginBottom: "10px" }}>ফলাফল (Copyright Free):</h3>
+          <div style={{ marginTop: "20px", borderTop: "1px solid #334155", paddingTop: "14px", textAlign: "center" }}>
+            <h3 style={{ color: "#38bdf8", fontSize: "13px", marginBottom: "8px" }}>ফলাফল:</h3>
             {activeTab === "image" ? (
-              <img src={result} alt="AI Result" style={{ width: "100%", borderRadius: "8px" }} />
+              <img src={result} alt="Result" style={{ width: "100%", borderRadius: "8px", border: "1px solid #334155" }} />
             ) : (
-              <video src={result} controls style={{ width: "100%", borderRadius: "8px" }} />
+              <video src={result} controls style={{ width: "100%", borderRadius: "8px", border: "1px solid #334155" }} />
             )}
-            <a
-              href={result}
-              target="_blank"
-              download
-              style={{ display: "inline-block", marginTop: "10px", fontSize: "12px", color: "#00d8f6", textDecoration: "none" }}
-            >
-              ⬇️ ফুল কোয়ালিটিতে ডাউনলোড করুন
+            <a href={result} target="_blank" download style={{ display: "inline-block", marginTop: "10px", fontSize: "12px", color: "#38bdf8" }}>
+              ⬇️ ডাউনলোড করুন
             </a>
           </div>
         )}
