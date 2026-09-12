@@ -1,142 +1,92 @@
-
 import { NextResponse } from "next/server";
-import { InferenceClient } from "@huggingface/inference";
 
 export const runtime = "nodejs";
 
 export async function POST(request) {
   try {
     const body = await request.json();
-
     const { prompt, imageUrl } = body;
 
+    // ১. ভ্যালিডেশন
     if (!prompt || !prompt.trim()) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "AI Prompt দেওয়া হয়নি।",
-        },
+        { success: false, error: "AI Prompt দেওয়া হয়নি।" },
         { status: 400 }
       );
     }
 
-    if (!imageUrl || typeof imageUrl !== "string") {
+    if (!imageUrl || !imageUrl.startsWith("data:image/")) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Image data পাওয়া যায়নি।",
-        },
+        { success: false, error: "সঠিক Image Data পাওয়া যায়নি।" },
         { status: 400 }
       );
     }
 
     const hfToken = process.env.HF_TOKEN;
-
     if (!hfToken) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "HF_TOKEN environment variable পাওয়া যায়নি।",
-        },
+        { success: false, error: "Vercel-এ HF_TOKEN সেট করা নেই।" },
         { status: 500 }
       );
     }
 
-    if (!imageUrl.startsWith("data:image/")) {
+    // ২. Base64 থেকে Buffer তৈরি
+    const base64Data = imageUrl.split(",")[1];
+    if (!base64Data) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid image format.",
-        },
+        { success: false, error: "Base64 Image ফরম্যাট সঠিক নয়।" },
         { status: 400 }
       );
     }
+    const imageBuffer = Buffer.from(base64Data, "base64");
 
-    const match = imageUrl.match(
-      /^data:(image\/[^;]+);base64,(.+)$/
-    );
-
-    if (!match) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Image data সঠিক নয়।",
+    // ৩. Hugging Face Inference API তে সরাসরি রিকোয়েস্ট (Instruct-Pix2Pix Model)
+    // দ্রষ্টব্য: Instruct-Pix2Pix মডেলে ইমেজ এবং প্রম্পট একসাথে পাঠানোর জন্য FormData বা JSON বাইনারি লাগে।
+    const hfResponse = await fetch(
+      "https://api-inference.huggingface.co/models/timbrooks/instruct-pix2pix",
+      {
+        headers: {
+          Authorization: `Bearer ${hfToken}`,
+          "Content-Type": "application/json",
         },
-        { status: 400 }
-      );
-    }
-
-    const mimeType = match[1];
-    const base64Data = match[2];
-
-    const imageBuffer = Buffer.from(
-      base64Data,
-      "base64"
+        method: "POST",
+        body: JSON.stringify({
+          inputs: base64Data, // Base64 string directly
+          parameters: {
+            prompt: prompt.trim(),
+          },
+        }),
+      }
     );
 
-    const client = new InferenceClient(hfToken);
-
-    const result = await client.imageToImage({
-      model: "timbrooks/instruct-pix2pix",
-      inputs: imageBuffer,
-      parameters: {
-        prompt: prompt.trim(),
-      },
-    });
-
-    if (!result) {
-      throw new Error(
-        "Hugging Face কোনো image result দেয়নি।"
+    // ৪. Hugging Face Response চেক
+    if (!hfResponse.ok) {
+      const errorText = await hfResponse.text();
+      console.error("HF Error Detail:", errorText);
+      return NextResponse.json(
+        { success: false, error: `Hugging Face Error: ${hfResponse.statusText}` },
+        { status: hfResponse.status }
       );
     }
 
-    let outputBuffer;
+    // ৫. আউটপুট প্রসেসিং
+    const arrayBuffer = await hfResponse.arrayBuffer();
+    const outputBuffer = Buffer.from(arrayBuffer);
+    const outputBase64 = outputBuffer.toString("base64");
 
-    if (result instanceof Blob) {
-      outputBuffer = Buffer.from(
-        await result.arrayBuffer()
-      );
-    } else if (result instanceof ArrayBuffer) {
-      outputBuffer = Buffer.from(result);
-    } else if (Buffer.isBuffer(result)) {
-      outputBuffer = result;
-    } else if (result?.data) {
-      outputBuffer = Buffer.from(result.data);
-    } else {
-      throw new Error(
-        "AI image response format সঠিক নয়।"
-      );
-    }
-
-    if (!outputBuffer || outputBuffer.length === 0) {
-      throw new Error(
-        "Edited image তৈরি হয়নি।"
-      );
-    }
-
-    const outputBase64 =
-      outputBuffer.toString("base64");
-
-    const resultUrl =
-      `data:${mimeType};base64,${outputBase64}`;
+    // Hugging Face সাধারণত image/jpeg বা image/png দেয়
+    const resultUrl = `data:image/png;base64,${outputBase64}`;
 
     return NextResponse.json({
       success: true,
       resultUrl,
     });
-
   } catch (error) {
-    console.error(
-      "Image AI Edit Error:",
-      error
-    );
-
+    console.error("Image AI Edit Error:", error);
     return NextResponse.json(
       {
         success: false,
-        error:
-          error?.message ||
-          "Image AI editing failed.",
+        error: error?.message || "Image AI editing failed.",
       },
       { status: 500 }
     );
