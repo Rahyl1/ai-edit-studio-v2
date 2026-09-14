@@ -11,18 +11,18 @@ export async function POST(req) {
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
     if (!token || !chatId) {
-      return NextResponse.json({ error: "Telegram Token/ChatID missing in Vercel" }, { status: 500 });
+      return NextResponse.json({ error: "Telegram Token or Chat ID not found" }, { status: 500 });
     }
 
-    // ১. টেক্সট পাঠানো
-    const textMessage = `📩 নতুন রিকোয়েস্ট!\nটাইপ: ${type}\nপ্রম্পট: ${prompt || "নেই"}`;
+    // ১. প্রম্পট ও টেক্সট সেন্ড
+    const textMessage = `📩 নতুন AI এডিট রিকোয়েস্ট!\n\n📌 টাইপ: ${type.toUpperCase()}\n💬 প্রম্পট: ${prompt || "কোনো প্রম্পট দেওয়া হয়নি"}`;
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: chatId, text: textMessage }),
     });
 
-    // ২. ফাইল পাঠানো
+    // ২. ফাইল সেন্ড
     const teleData = new FormData();
     teleData.append("chat_id", chatId);
     teleData.append(type === "image" ? "photo" : "video", file);
