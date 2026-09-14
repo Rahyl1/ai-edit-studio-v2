@@ -81,7 +81,7 @@ export default function Home() {
         </div>
 
         <div style={{ marginBottom: "16px" }}>
-          <label style={{ fontSize: "12px", color: "#cbd5e1", display: "block", marginBottom: "6px" }}>
+          <label style={{ fontSize: "12px", color="#cbd5e1", display: "block", marginBottom: "6px" }}>
             {activeTab === "image" ? "এডিট করার ছবি সিলেক্ট করুন:" : "ভিডিও সিলেক্ট করুন:"}
           </label>
           <input
