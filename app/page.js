@@ -20,34 +20,51 @@ export default function Home() {
     setLoading(true);
     setMessage(null);
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('prompt', prompt);
-    formData.append('type', type);
+    const botToken = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID;
+
+    if (!botToken || !chatId) {
+      setMessage({
+        type: 'error',
+        text: 'Vercel-এ NEXT_PUBLIC_TELEGRAM_BOT_TOKEN অথবা NEXT_PUBLIC_TELEGRAM_CHAT_ID দেওয়া হয়নি!',
+      });
+      setLoading(false);
+      return;
+    }
 
     try {
-      const res = await fetch('/api/telegram', {
-        method: 'POST',
-        body: formData,
-      });
+      const tgFormData = new FormData();
+      tgFormData.append('chat_id', chatId);
 
-      const contentType = res.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error(`API রাউটটি পাওয়া যাচ্ছে না! (Status: ${res.status})`);
+      const caption = `<b>✨ নতুন AI Studio রিকোয়েস্ট</b>\n<b>টাইপ:</b> ${type === 'image' ? '🖼️ ছবি' : '🎥 ভিডিও'}\n<b>প্রম্পট:</b> ${prompt || 'None'}`;
+      tgFormData.append('caption', caption);
+      tgFormData.append('parse_mode', 'HTML');
+
+      let apiMethod = 'sendPhoto';
+      if (type === 'video') {
+        apiMethod = 'sendVideo';
+        tgFormData.append('video', file);
+      } else {
+        tgFormData.append('photo', file);
       }
 
-      const data = await res.json();
+      const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/${apiMethod}`, {
+        method: 'POST',
+        body: tgFormData,
+      });
 
-      if (res.ok && data.success) {
+      const tgData = await tgRes.json();
+
+      if (tgRes.ok && tgData.ok) {
         setMessage({ type: 'success', text: 'আপনার রিকোয়েস্ট সফলভাবে টেলিগ্রামে পাঠানো হয়েছে! 🎉' });
         setPrompt('');
         setFile(null);
         e.target.reset();
       } else {
-        setMessage({ type: 'error', text: data.error || 'টেলিগ্রাম বটের তথ্য বা চ্যাট আইডি ভুল আছে!' });
+        setMessage({ type: 'error', text: tgData.description || 'টেলিগ্রাম বটে তথ্য পাঠাতে সমস্যা হয়েছে!' });
       }
     } catch (err) {
-      setMessage({ type: 'error', text: err.message || 'সার্ভারে সংযোগ করতে ব্যর্থ!' });
+      setMessage({ type: 'error', text: err.message || 'নেটওয়ার্ক সংযোগ করতে ব্যর্থ!' });
     } finally {
       setLoading(false);
     }
