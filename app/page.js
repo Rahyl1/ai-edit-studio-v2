@@ -49,12 +49,10 @@ export default function Home() {
         alert("ত্রুটি: " + (data.error || "ফাইল পাঠানো যায়নি।"));
       }
     } catch (err) {
-      console.error(err);
-      alert("নেটওয়ার্ক সমস্যা হয়েছে!");
-    } finally {
-      setLoading(false);
-    }
-  };
+  console.error(err);
+  alert("ত্রুটি: " + err.message);
+}
+
 
   return (
     <div style={{ backgroundColor: "#0f172a", minHeight: "100vh", width: "100%", padding: "16px 8px", color: "#f8fafc", fontFamily: "sans-serif", display: "flex", justifyContent: "center", alignItems: "flex-start", boxSizing: "border-box" }}>
