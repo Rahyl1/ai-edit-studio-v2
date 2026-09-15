@@ -1,135 +1,136 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState("image");
   const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState('');
+  const [type, setType] = useState('image'); // 'image' or 'video'
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [message, setMessage] = useState(null);
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setPreview(URL.createObjectURL(selectedFile));
-      setSubmitted(false);
-    }
-  };
-
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
     if (!file) {
-      alert("অনুগ্রহ করে একটি ছবি বা ভিডিও নির্বাচন করুন।");
+      setMessage({ type: 'error', text: 'দয়া করে একটি ফাইল নির্বাচন করুন!' });
       return;
     }
 
     setLoading(true);
+    setMessage(null);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('prompt', prompt);
+    formData.append('type', type);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("type", activeTab);
-      formData.append("prompt", prompt);
-
-      const res = await fetch("/api/telegram", {
-        method: "POST",
+      const res = await fetch('/api/telegram', {
+        method: 'POST',
         body: formData,
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        setSubmitted(true);
+        setMessage({ type: 'success', text: 'আপনার রিকোয়েস্ট সফলভাবে টেলিগ্রামে পাঠানো হয়েছে! 🎉' });
+        setPrompt('');
         setFile(null);
-        setPreview(null);
-        setPrompt("");
+        e.target.reset();
       } else {
-        alert("ত্রুটি: " + (data.error || "ফাইল পাঠানো যায়নি।"));
+        setMessage({ type: 'error', text: data.error || 'একটি সমস্যা হয়েছে, আবার চেষ্টা করুন।' });
       }
     } catch (err) {
-      console.error(err);
-      alert("Error details: " + err.message);
+      setMessage({ type: 'error', text: 'সার্ভারে সংযোগ করা সম্ভব হয়নি!' });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ backgroundColor: "#0f172a", minHeight: "100vh", width: "100%", padding: "16px 8px", color: "#f8fafc", fontFamily: "sans-serif", display: "flex", justifyContent: "center", alignItems: "flex-start", boxSizing: "border-box" }}>
-      <div style={{ backgroundColor: "#1e293b", width: "100%", maxWidth: "550px", borderRadius: "16px", padding: "20px", boxShadow: "0 10px 25px rgba(0,0,0,0.5)", border: "1px solid #334155", boxSizing: "border-box" }}>
-        
-        <div style={{ textAlign: "center", marginBottom: "20px" }}>
-          <h1 style={{ fontSize: "22px", color: "#38bdf8", margin: "0 0 6px 0", fontWeight: "bold" }}>✨ AI Studio Submission</h1>
-          <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0 }}>ফাইল ও প্রম্পট জমা দিন</p>
-        </div>
+    <main className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+        <h1 className="text-2xl font-bold text-center mb-2 text-sky-400">
+          ✨ AI Studio Submission
+        </h1>
+        <p className="text-sm text-slate-400 text-center mb-6">
+          ফাইল ও প্রম্পট জমা দিন
+        </p>
 
-        <div style={{ display: "flex", backgroundColor: "#0f172a", borderRadius: "10px", padding: "4px", marginBottom: "18px" }}>
+        {/* Type Selection Tabs */}
+        <div className="flex bg-slate-800 p-1 rounded-xl mb-6">
           <button
-            onClick={() => { setActiveTab("image"); setSubmitted(false); }}
-            style={{ flex: 1, padding: "10px", border: "none", borderRadius: "8px", backgroundColor: activeTab === "image" ? "#38bdf8" : "transparent", color: activeTab === "image" ? "#0f172a" : "#94a3b8", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }}
+            type="button"
+            onClick={() => setType('image')}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+              type === 'image'
+                ? 'bg-sky-500 text-white shadow'
+                : 'text-slate-400 hover:text-white'
+            }`}
           >
             🖼️ Image Request
           </button>
           <button
-            onClick={() => { setActiveTab("video"); setSubmitted(false); }}
-            style={{ flex: 1, padding: "10px", border: "none", borderRadius: "8px", backgroundColor: activeTab === "video" ? "#38bdf8" : "transparent", color: activeTab === "video" ? "#0f172a" : "#94a3b8", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }}
+            type="button"
+            onClick={() => setType('video')}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+              type === 'video'
+                ? 'bg-sky-500 text-white shadow'
+                : 'text-slate-400 hover:text-white'
+            }`}
           >
             🎥 Video Request
           </button>
         </div>
 
-        <div style={{ marginBottom: "16px" }}>
-          <label style={{ fontSize: "12px", color: "#cbd5e1", display: "block", marginBottom: "6px" }}>
-            {activeTab === "image" ? "এডিট করার ছবি সিলেক্ট করুন:" : "ভিডিও সিলেক্ট করুন:"}
-          </label>
-          <input
-            type="file"
-            accept={activeTab === "image" ? "image/*" : "video/*"}
-            onChange={handleFileChange}
-            style={{ width: "100%", padding: "10px", backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: "8px", color: "#f8fafc", fontSize: "12px", boxSizing: "border-box" }}
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium mb-2 text-slate-300">
+              {type === 'image' ? 'এডিট করার ছবি সিলেক্ট করুন:' : 'এডিট করার ভিডিও সিলেক্ট করুন:'}
+            </label>
+            <input
+              type="file"
+              accept={type === 'image' ? 'image/*' : 'video/*'}
+              onChange={(e) => setFile(e.target.files[0])}
+              className="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20 cursor-pointer bg-slate-800/50 rounded-xl p-2 border border-slate-700/50"
+            />
+          </div>
 
-        {preview && (
-          <div style={{ marginBottom: "16px", textAlign: "center", backgroundColor: "#0f172a", padding: "10px", borderRadius: "8px", border: "1px solid #334155" }}>
-            {activeTab === "image" ? (
-              <img src={preview} alt="Preview" style={{ maxHeight: "180px", maxWidth: "100%", borderRadius: "6px" }} />
-            ) : (
-              <video src={preview} controls style={{ maxHeight: "180px", maxWidth: "100%", borderRadius: "6px" }} />
-            )}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-slate-300">
+              ✨ কী পরিবর্তন বা এডিট চান:
+            </label>
+            <textarea
+              rows="3"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="যেমন: ব্যাকগ্রাউন্ড পাল্টে দাও..."
+              className="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 text-sm focus:outline-none focus:border-sky-500 text-white resize-none"
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-sky-500 hover:bg-sky-400 active:bg-sky-600 disabled:opacity-50 text-white font-semibold rounded-xl transition-all shadow-lg shadow-sky-500/20"
+          >
+            {loading ? '⏳ ফর্ম জমা হচ্ছে...' : '🚀 এডিট রিকোয়েস্ট পাঠান'}
+          </button>
+        </form>
+
+        {message && (
+          <div
+            className={`mt-4 p-3 rounded-xl text-sm text-center ${
+              message.type === 'success'
+                ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                : 'bg-rose-500/10 border border-rose-500/20 text-rose-400'
+            }`}
+          >
+            {message.text}
           </div>
         )}
-
-        <div style={{ marginBottom: "20px" }}>
-          <label style={{ fontSize: "12px", color: "#cbd5e1", display: "block", marginBottom: "6px" }}>✨ কী পরিবর্তন বা এডিট চান:</label>
-          <textarea
-            rows="3"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="যেমন: ব্যাকগ্রাউন্ড পাল্টে দাও..."
-            style={{ width: "100%", padding: "10px", backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: "8px", color: "#fff", fontSize: "12px", boxSizing: "border-box", resize: "none" }}
-          />
-        </div>
-
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          style={{ width: "100%", padding: "12px", backgroundColor: loading ? "#64748b" : "#38bdf8", color: "#0f172a", fontWeight: "bold", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px" }}
-        >
-          {loading ? "⏳ ফর্ম জমা হচ্ছে..." : "🚀 এডিট রিকোয়েস্ট পাঠান"}
-        </button>
-
-        {submitted && (
-          <div style={{ marginTop: "16px", padding: "12px", backgroundColor: "#064e3b", border: "1px solid #059669", borderRadius: "8px", textAlign: "center" }}>
-            <p style={{ margin: 0, color: "#34d399", fontSize: "13px", fontWeight: "bold" }}>
-              ✅ সফলভাবে জমা হয়েছে! আপনার টেলিগ্রাম বটে মেসেজ চলে গেছে।
-            </p>
-          </div>
-        )}
-
       </div>
-    </div>
+    </main>
   );
 }
