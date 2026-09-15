@@ -56,7 +56,6 @@ export async function POST(req) {
     return NextResponse.json({ success: true, data: tgData });
 
   } catch (error) {
-    console.error('API Error:', error);
     return NextResponse.json(
       { error: error.message || 'Internal Server Error' },
       { status: 500 }
