@@ -26,20 +26,20 @@ export default function Home() {
     formData.append('type', type);
 
     try {
-      const res = await fetch('/api/telegram', {
+      const res = await fetch(window.location.origin + '/api/telegram', {
         method: 'POST',
         body: formData,
       });
 
       const data = await res.json();
 
-      if (res.ok) {
+      if (res.ok && data.success) {
         setMessage({ type: 'success', text: 'আপনার রিকোয়েস্ট সফলভাবে টেলিগ্রামে পাঠানো হয়েছে! 🎉' });
         setPrompt('');
         setFile(null);
         e.target.reset();
       } else {
-        setMessage({ type: 'error', text: data.error || 'একটি সমস্যা হয়েছে, আবার চেষ্টা করুন।' });
+        setMessage({ type: 'error', text: data.error || 'টেলিগ্রাম বটের তথ্য বা চ্যাট আইডি ভুল আছে!' });
       }
     } catch (err) {
       setMessage({ type: 'error', text: 'সার্ভারে সংযোগ করা সম্ভব হয়নি!' });
