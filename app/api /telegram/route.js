@@ -7,34 +7,51 @@ export async function POST(req) {
     const type = formData.get("type");
     const prompt = formData.get("prompt");
 
-    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    if (!token || !chatId) {
-      return NextResponse.json({ error: "Telegram Bot Token or Chat ID is missing!" }, { status: 500 });
+    if (!botToken || !chatId) {
+      return NextResponse.json(
+        { error: "টেলিগ্রামের BOT_TOKEN অথবা CHAT_ID সেট করা নেই।" },
+        { status: 500 }
+      );
     }
 
-    // ১. টেক্সট পাঠানো
-    const textMessage = `📩 নতুন রিকোয়েস্ট!\nটাইপ: ${type.toUpperCase()}\nপ্রম্পট: ${prompt || "নেই"}`;
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const caption = `<b>✨ নতুন AI Studio রিকোয়েস্ট!</b>\n\n<b>টাইপ:</b> ${type === "image" ? "🖼️ ছবি" : "🎥 ভিডিও"}\n<b>প্রম্পট:</b> ${prompt || "কোনো প্রম্পট দেওয়া হয়নি"}`;
+
+    const tgFormData = new FormData();
+    tgFormData.append("chat_id", chatId);
+    tgFormData.append("caption", caption);
+    tgFormData.append("parse_mode", "HTML");
+
+    let apiMethod = "sendPhoto";
+    if (type === "video") {
+      apiMethod = "sendVideo";
+      tgFormData.append("video", file);
+    } else {
+      tgFormData.append("photo", file);
+    }
+
+    const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/${apiMethod}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text: textMessage }),
+      body: tgFormData,
     });
 
-    // ২. ফাইল পাঠানো
-    const teleData = new FormData();
-    teleData.append("chat_id", chatId);
-    teleData.append(type === "image" ? "photo" : "video", file);
+    const tgData = await tgRes.json();
 
-    const endpoint = type === "image" ? "sendPhoto" : "sendVideo";
-    await fetch(`https://api.telegram.org/bot${token}/${endpoint}`, {
-      method: "POST",
-      body: teleData,
-    });
+    if (!tgRes.ok) {
+      return NextResponse.json(
+        { error: tgData.description || "টেলিগ্রামে ফাইল পাঠাতে সমস্যা হয়েছে।" },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, data: tgData });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("API Error:", error);
+    return NextResponse.json(
+      { error: "সার্ভারে সমস্যা তৈরি হয়েছে: " + error.message },
+      { status: 500 }
+    );
   }
 }
