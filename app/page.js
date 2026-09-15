@@ -9,7 +9,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
-  // Helper to convert file to base64
   const fileToBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -41,11 +40,16 @@ export default function Home() {
         body: JSON.stringify({
           file: base64File,
           fileName: file.name,
-          fileType: file.type,
           prompt,
           type,
         }),
       });
+
+      // HTML 404/500 এরর ঠেকাতে চেক
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error(`API রাউটটি পাওয়া যাচ্ছে না! (Status: ${res.status})`);
+      }
 
       const data = await res.json();
 
@@ -58,7 +62,7 @@ export default function Home() {
         setMessage({ type: 'error', text: data.error || 'টেলিগ্রাম বটের তথ্য বা চ্যাট আইডি ভুল আছে!' });
       }
     } catch (err) {
-      setMessage({ type: 'error', text: `এরর: ${err.message || 'সার্ভারে সংযোগ করতে ব্যর্থ!'}` });
+      setMessage({ type: 'error', text: err.message || 'সার্ভারে সংযোগ করতে ব্যর্থ!' });
     } finally {
       setLoading(false);
     }
