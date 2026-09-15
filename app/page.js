@@ -9,9 +9,19 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
+  // Helper to convert file to base64
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!file) {
       setMessage({ type: 'error', text: 'দয়া করে একটি ফাইল নির্বাচন করুন!' });
       return;
@@ -20,15 +30,21 @@ export default function Home() {
     setLoading(true);
     setMessage(null);
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('prompt', prompt);
-    formData.append('type', type);
-
     try {
-      const res = await fetch(window.location.origin + '/api/telegram', {
+      const base64File = await fileToBase64(file);
+
+      const res = await fetch('/api/telegram', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          file: base64File,
+          fileName: file.name,
+          fileType: file.type,
+          prompt,
+          type,
+        }),
       });
 
       const data = await res.json();
@@ -42,7 +58,7 @@ export default function Home() {
         setMessage({ type: 'error', text: data.error || 'টেলিগ্রাম বটের তথ্য বা চ্যাট আইডি ভুল আছে!' });
       }
     } catch (err) {
-      setMessage({ type: 'error', text: 'সার্ভারে সংযোগ করা সম্ভব হয়নি!' });
+      setMessage({ type: 'error', text: `এরর: ${err.message || 'সার্ভারে সংযোগ করতে ব্যর্থ!'}` });
     } finally {
       setLoading(false);
     }
