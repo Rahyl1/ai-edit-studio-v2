@@ -49,10 +49,12 @@ export default function Home() {
         alert("ত্রুটি: " + (data.error || "ফাইল পাঠানো যায়নি।"));
       }
     } catch (err) {
-  console.error(err);
-  alert("ত্রুটি: " + err.message);
-}
-
+      console.error(err);
+      alert("Error details: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={{ backgroundColor: "#0f172a", minHeight: "100vh", width: "100%", padding: "16px 8px", color: "#f8fafc", fontFamily: "sans-serif", display: "flex", justifyContent: "center", alignItems: "flex-start", boxSizing: "border-box" }}>
@@ -79,7 +81,7 @@ export default function Home() {
         </div>
 
         <div style={{ marginBottom: "16px" }}>
-          <label style={{ fontSize: "12px", color="#cbd5e1", display: "block", marginBottom: "6px" }}>
+          <label style={{ fontSize: "12px", color: "#cbd5e1", display: "block", marginBottom: "6px" }}>
             {activeTab === "image" ? "এডিট করার ছবি সিলেক্ট করুন:" : "ভিডিও সিলেক্ট করুন:"}
           </label>
           <input
