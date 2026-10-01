@@ -1,4 +1,5 @@
-'use client';
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5461913065696820"
+     crossorigin="anonymous"></script>'use client';
 
 import { useState } from 'react';
 
