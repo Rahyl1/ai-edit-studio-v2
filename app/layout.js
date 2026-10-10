@@ -1,4 +1,5 @@
-other: {
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5461913065696820"
+     crossorigin="anonymous"></script>other: {
   "google-adsense-account":
     "ca-pub-5461913065696820",
 },
@@ -18,6 +19,7 @@ export default function RootLayout({ children }) {
     <html lang="bn">
       <body style={{ margin: 0, padding: 0, backgroundColor: '#0b0f19' }}>
         {children}
+<meta name="google-adsense-account" content="ca-pub-5461913065696820" />
       </body>
     </html>
   )
