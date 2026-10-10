@@ -1,3 +1,7 @@
+other: {
+  "google-adsense-account":
+    "ca-pub-5461913065696820",
+},
 export const metadata = {
   title: 'AI Edit Studio',
   description: 'Edit images and videos with AI prompts',
